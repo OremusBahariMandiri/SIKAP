@@ -208,9 +208,14 @@
                                                         <i class="fas fa-file-alt fa-2x text-primary me-3"></i>
                                                         <div>
                                                             <div class="fw-bold">{{ $dokLegal->FileDok }}</div>
-                                                            <a href="{{ route('dokLegal.download', $dokLegal) }}" class="btn btn-sm btn-primary mt-2">
-                                                                <i class="fas fa-download me-1"></i> Download File
-                                                            </a>
+                                                            <div class="mt-2">
+                                                                <a href="{{ route('dokLegal.view', $dokLegal) }}" target="_blank" class="btn btn-sm btn-primary me-2">
+                                                                    <i class="fas fa-eye me-1"></i> Lihat File
+                                                                </a>
+                                                                <a href="{{ route('dokLegal.download', $dokLegal) }}" class="btn btn-sm btn-secondary">
+                                                                    <i class="fas fa-download me-1"></i> Download
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 @else
