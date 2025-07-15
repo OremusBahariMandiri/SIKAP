@@ -15,9 +15,18 @@
                             <button type="button" class="btn btn-light me-2" id="exportButton">
                                 <i class="fas fa-download me-1"></i> Export
                             </button>
-                            <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
-                                <i class="fas fa-plus-circle me-1"></i> Tambah
-                            </a>
+                            @php
+                                // Ambil data akses pengguna untuk dokLegal dari database
+                                $userAccess = Auth::user()->accessPermissions()
+                                    ->where('MenuAcs', 'dokLegal')
+                                    ->first();
+                            @endphp
+
+                            @if($userAccess && $userAccess->TambahAcs == 1)
+                                <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
+                                    <i class="fas fa-plus-circle me-1"></i> Tambah
+                                </a>
+                            @endif
                         </div>
                     </div>
 
@@ -98,34 +107,51 @@
 
                                             <td>
                                                 <div class="d-flex gap-1">
-                                                    <a href="{{ route('dokLegal.show', $dokLegal) }}"
-                                                        class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
-                                                        title="Detail">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{{ route('dokLegal.edit', $dokLegal) }}"
-                                                        class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
-                                                        title="Edit">
-                                                        <i class="fas fa-edit text-white"></i>
-                                                    </a>
-                                                    @if ($dokLegal->FileDok)
+                                                    @php
+                                                        // Mendapatkan akses pengguna untuk dokLegal dari database
+                                                        $userAccess = Auth::user()->accessPermissions()
+                                                            ->where('MenuAcs', 'dokLegal')
+                                                            ->first();
+                                                    @endphp
+
+                                                    {{-- Detail button - tampilkan hanya jika DetailAcs = 1 --}}
+                                                    @if($userAccess && $userAccess->DetailAcs == 1)
+                                                        <a href="{{ route('dokLegal.show', $dokLegal) }}"
+                                                            class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
+                                                            title="Detail">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    @endif
+
+                                                    {{-- Edit button - tampilkan hanya jika UbahAcs = 1 --}}
+                                                    @if($userAccess && $userAccess->UbahAcs == 1)
+                                                        <a href="{{ route('dokLegal.edit', $dokLegal) }}"
+                                                            class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
+                                                            title="Edit">
+                                                            <i class="fas fa-edit text-white"></i>
+                                                        </a>
+                                                    @endif
+
+                                                    {{-- Download button - tampilkan hanya jika DownloadAcs = 1 dan file ada --}}
+                                                    @if($userAccess && $userAccess->DownloadAcs == 1 && $dokLegal->FileDok)
                                                         <a href="{{ route('dokLegal.download', $dokLegal) }}"
                                                             class="btn btn-sm btn-success" data-bs-toggle="tooltip"
                                                             title="Download">
                                                             <i class="fas fa-download"></i>
                                                         </a>
                                                     @endif
-                                                    <button type="button" class="btn btn-sm btn-danger delete-confirm"
-                                                        data-id="{{ $dokLegal->id }}"
-                                                        data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
-                                                        data-has-permission="{{ $hasDeletePermission ? 'true' : 'false' }}"
-                                                        title="Hapus">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
+
+                                                    {{-- Delete button - tampilkan hanya jika HapusAcs = 1 --}}
+                                                    @if($userAccess && $userAccess->HapusAcs == 1)
+                                                        <button type="button" class="btn btn-sm btn-danger delete-confirm"
+                                                            data-id="{{ $dokLegal->id }}"
+                                                            data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
+                                                            title="Hapus">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </td>
-
-
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -933,37 +959,17 @@
                         $('#exportModal').modal('hide');
                     });
 
-                    // ======================== FIXED DELETE CONFIRMATION HANDLER ========================
-                    // Handle Delete Confirmation - FIXED VERSION
+                    // Handle Delete Confirmation
                     $(document).on('click', '.delete-confirm', function(e) {
                         // Prevent any default action
                         e.preventDefault();
                         e.stopPropagation();
 
-                        var hasPermission = $(this).data('has-permission') === 'true';
+                        // Get document ID and name
                         var id = $(this).data('id');
                         var name = $(this).data('name');
 
-                        // Check permission first BEFORE any modal operations
-                        if (!hasPermission) {
-                            // Show SweetAlert2 immediately for access denied
-                            Swal.fire({
-                                title: 'Akses Ditolak',
-                                text: 'Maaf, Anda tidak memiliki hak akses untuk menghapus dokumen.',
-                                icon: 'error',
-                                confirmButtonText: 'OK',
-                                customClass: {
-                                    popup: 'swal-popup-above-modal'
-                                },
-                                // Ensure SweetAlert2 appears above any modal backdrop
-                                backdrop: true,
-                                allowOutsideClick: true,
-                                allowEscapeKey: true
-                            });
-                            return; // Stop execution immediately
-                        }
-
-                        // If user has permission, show delete confirmation modal
+                        // Set the document name in the modal
                         $('#dokNoRegToDelete').text(name);
 
                         // Set form action URL
@@ -974,117 +980,62 @@
                         $('#deleteConfirmationModal').modal('show');
                     });
 
-                    // Alternative approach: Handle permission check with custom confirmation dialog
-                    function showDeleteConfirmation(id, name, hasPermission) {
-                        if (!hasPermission) {
-                            // Use a custom styled alert instead of modal
-                            showAccessDeniedAlert();
-                            return;
+                    // Add necessary styling for SweetAlert to override Bootstrap modals
+                    $('<style>')
+                        .prop('type', 'text/css')
+                        .html(`
+                        /* Ensure SweetAlert appears above all other elements */
+                        .swal2-container {
+                            z-index: 2060 !important; /* Higher than Bootstrap modal backdrop (2050) */
                         }
 
-                        // Show delete confirmation using SweetAlert2
-                        Swal.fire({
-                            title: 'Konfirmasi Hapus',
-                            html: `
-                                <div class="text-start">
-                                    <p>Apakah Anda yakin ingin menghapus dokumen dengan No. Reg <strong>${name}</strong>?</p>
-                                    <p class="text-danger"><i class="fas fa-info-circle me-1"></i>Tindakan ini tidak dapat dibatalkan!</p>
-                                </div>
-                            `,
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#dc3545',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: '<i class="fas fa-trash me-1"></i>Hapus',
-                            cancelButtonText: '<i class="fas fa-times me-1"></i>Batal',
-                            customClass: {
-                                popup: 'swal-wide'
+                        /* Prevent Bootstrap modals from interfering */
+                        .modal-backdrop {
+                            z-index: 1050 !important;
+                        }
+
+                        .modal {
+                            z-index: 1055 !important;
+                        }
+
+                        /* Fix for Windows browsers */
+                        body.swal2-shown {
+                            overflow-y: hidden !important;
+                            padding-right: 0 !important;
+                        }
+
+                        /* Ensure SweetAlert is visible on mobile devices */
+                        @media (max-width: 500px) {
+                            .swal2-popup {
+                                width: 90% !important;
                             }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Create and submit delete form
-                                var form = $('<form>', {
-                                    'method': 'POST',
-                                    'action': "{{ url('dokLegal') }}/" + id
-                                });
-
-                                form.append($('<input>', {
-                                    'type': 'hidden',
-                                    'name': '_token',
-                                    'value': $('meta[name="csrf-token"]').attr('content')
-                                }));
-
-                                form.append($('<input>', {
-                                    'type': 'hidden',
-                                    'name': '_method',
-                                    'value': 'DELETE'
-                                }));
-
-                                $('body').append(form);
-                                form.submit();
-                            }
-                        });
-                    }
-
-                    // Function to show access denied alert
-                    function showAccessDeniedAlert() {
-                        // Create a custom toast notification
-                        const toast = $(`
-                            <div class="toast align-items-center text-white bg-danger border-0 position-fixed"
-                                 style="top: 20px; right: 20px; z-index: 9999;"
-                                 role="alert" aria-live="assertive" aria-atomic="true">
-                                <div class="d-flex">
-                                    <div class="toast-body">
-                                        <i class="fas fa-exclamation-circle me-2"></i>
-                                        <strong>Akses Ditolak!</strong><br>
-                                        Anda tidak memiliki hak akses untuk menghapus dokumen.
-                                    </div>
-                                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                            data-bs-dismiss="toast" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        `);
-
-                        $('body').append(toast);
-                        const bsToast = new bootstrap.Toast(toast[0], {
-                            autohide: true,
-                            delay: 5000
-                        });
-                        bsToast.show();
-
-                        // Remove toast element after it's hidden
-                        toast.on('hidden.bs.toast', function() {
-                            $(this).remove();
-                        });
-                    }
-
-                    // Alternative delete button handler using the new approach
-                    $(document).on('click', '.delete-confirm-alt', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        var hasPermission = $(this).data('has-permission') === 'true';
-                        var id = $(this).data('id');
-                        var name = $(this).data('name');
-
-                        showDeleteConfirmation(id, name, hasPermission);
-                    });
-
-                    // ======================== END FIXED DELETE CONFIRMATION HANDLER ========================
+                        }
+                    `)
+                        .appendTo('head');
 
                     // Tambahkan efek klik pada baris tabel untuk menuju halaman detail
                     $('#dokLegalTable tbody').on('click', 'tr', function(e) {
-                        // Jangan ikuti link jika yanaccg diklik adalah tombol atau link di dalam baris
+                        // Jangan ikuti link jika yang diklik adalah tombol atau link di dalam baris
                         if ($(e.target).is('button') || $(e.target).is('a') || $(e.target).is('i') ||
                             $(e.target).closest('button').length || $(e.target).closest('a').length) {
                             return;
                         }
 
-                        // Dapatkan ID dokumen dari tombol detail
-                        var detailLink = $(this).find('a[title="Detail"]').attr('href');
-                        if (detailLink) {
-                            window.location.href = detailLink;
-                        }
+                        // Ambil hak akses pengguna untuk dokumen legal
+                        @php
+                            $userAccess = Auth::user()->accessPermissions()
+                                ->where('MenuAcs', 'dokLegal')
+                                ->first();
+                        @endphp
+
+                        // Hanya arahkan ke halaman detail jika memiliki akses DetailAcs
+                        @if($userAccess && $userAccess->DetailAcs == 1)
+                            // Dapatkan ID dokumen dari tombol detail
+                            var detailLink = $(this).find('a[title="Detail"]').attr('href');
+                            if (detailLink) {
+                                window.location.href = detailLink;
+                            }
+                        @endif
                     });
 
                     // Tambahkan efek flash saat baris di-hover

@@ -27,7 +27,7 @@
                     $hasPerusahaanAccess = Auth::user()->isAdmin() || Auth::user()->hasAccess('perusahaan', 'detail');
                     $hasKategoriDokAccess = Auth::user()->isAdmin() || Auth::user()->hasAccess('kategori-dok', 'detail');
                     $hasJenisDokAccess = Auth::user()->isAdmin() || Auth::user()->hasAccess('jenis-dok', 'detail');
-                    
+
                     // Check if user has access to any master data menu
                     $hasMasterDataAccess = $hasUserAccess || $hasPerusahaanAccess || $hasKategoriDokAccess || $hasJenisDokAccess;
                 @endphp
