@@ -16,7 +16,7 @@
                                 <i class="fas fa-download me-1"></i> Export
                             </button>
                             <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
-                                <i class="fas fa-plus-circle me-1"></i> Tambah Dokumen
+                                <i class="fas fa-plus-circle me-1"></i> Tambah
                             </a>
                         </div>
                     </div>
