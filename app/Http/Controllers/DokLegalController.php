@@ -37,12 +37,24 @@ class DokLegalController extends Controller
         // Ambil jenis masa berlaku untuk filter dropdown
         $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
 
-        // Individual permission checks
-        $hasViewPermission = auth()->user()->hasAccess('dokLegal', 'DetailAcs');
-        $hasEditPermission = auth()->user()->hasAccess('dokLegal', 'UbahAcs');
-        $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'HapusAcs');
-        $hasDownloadPermission = auth()->user()->hasAccess('dokLegal', 'DownloadAcs');
-        $hasCreatePermission = auth()->user()->hasAccess('dokLegal', 'TambahAcs');
+        // Check if user is admin
+        $isAdmin = auth()->user()->isAdmin();
+
+        // If user is admin, grant all permissions
+        if ($isAdmin) {
+            $hasViewPermission = true;
+            $hasEditPermission = true;
+            $hasDeletePermission = true;
+            $hasDownloadPermission = true;
+            $hasCreatePermission = true;
+        } else {
+            // Individual permission checks for non-admin users
+            $hasViewPermission = auth()->user()->hasAccess('dokLegal', 'detail');
+            $hasEditPermission = auth()->user()->hasAccess('dokLegal', 'ubah');
+            $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'hapus');
+            $hasDownloadPermission = auth()->user()->hasAccess('dokLegal', 'download');
+            $hasCreatePermission = auth()->user()->hasAccess('dokLegal', 'tambah');
+        }
 
         return view('dokLegal.index', compact(
             'dokLegals',
@@ -54,7 +66,8 @@ class DokLegalController extends Controller
             'hasEditPermission',
             'hasDeletePermission',
             'hasDownloadPermission',
-            'hasCreatePermission'
+            'hasCreatePermission',
+            'isAdmin'
         ));
     }
     /**
