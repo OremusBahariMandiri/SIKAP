@@ -36,9 +36,26 @@ class DokLegalController extends Controller
 
         // Ambil jenis masa berlaku untuk filter dropdown
         $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
-        $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'HapusAcs');
 
-        return view('dokLegal.index', compact('dokLegals', 'kategoris', 'jenisDoks', 'jenisMasaBerlaku', 'perusahaans', 'hasDeletePermission'));
+        // Individual permission checks
+        $hasViewPermission = auth()->user()->hasAccess('dokLegal', 'DetailAcs');
+        $hasEditPermission = auth()->user()->hasAccess('dokLegal', 'UbahAcs');
+        $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'HapusAcs');
+        $hasDownloadPermission = auth()->user()->hasAccess('dokLegal', 'DownloadAcs');
+        $hasCreatePermission = auth()->user()->hasAccess('dokLegal', 'TambahAcs');
+
+        return view('dokLegal.index', compact(
+            'dokLegals',
+            'kategoris',
+            'jenisDoks',
+            'jenisMasaBerlaku',
+            'perusahaans',
+            'hasViewPermission',
+            'hasEditPermission',
+            'hasDeletePermission',
+            'hasDownloadPermission',
+            'hasCreatePermission'
+        ));
     }
     /**
      * Show the form for creating a new resource.
@@ -318,18 +335,36 @@ class DokLegalController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(DokLegal $dokLegal)
     {
-        // Delete file if exists
-        if ($dokLegal->FileDok && Storage::disk('public')->exists('uploads/dokumen/' . $dokLegal->FileDok)) {
-            Storage::disk('public')->delete('uploads/dokumen/' . $dokLegal->FileDok);
+        // Verifikasi hak akses terlebih dahulu
+        if (!auth()->user()->hasAccess('dokLegal', 'HapusAcs')) {
+            // Log percobaan akses tidak sah
+            \Log::warning('Upaya penghapusan dokumen tanpa izin oleh user: ' . auth()->user()->id . ' untuk dokumen ID: ' . $dokLegal->id);
+
+            // Redirect dengan pesan error
+            return redirect()->route('dokLegal.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menghapus dokumen.');
         }
 
-        $dokLegal->delete();
+        try {
+            // Delete file if exists
+            if ($dokLegal->FileDok && Storage::disk('public')->exists('uploads/dokumen/' . $dokLegal->FileDok)) {
+                Storage::disk('public')->delete('uploads/dokumen/' . $dokLegal->FileDok);
+            }
 
+            $dokLegal->delete();
 
-        Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Dihapus.');
-        return redirect()->route('dokLegal.index');
+            Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Dihapus.');
+            return redirect()->route('dokLegal.index');
+        } catch (\Exception $e) {
+            \Log::error('Error saat menghapus dokumen: ' . $e->getMessage());
+            return redirect()->route('dokLegal.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus dokumen. Silakan coba lagi.');
+        }
     }
 
 
