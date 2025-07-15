@@ -499,6 +499,7 @@
     @endpush
 
 
+
     <!-- BAGIAN JAVASCRIPT - LETAKKAN DI @push('scripts') -->
         @push('scripts')
             <!-- DataTables JS -->
@@ -803,6 +804,7 @@
                                     warningCount++;
                                     return; // Stop here
                                 }
+                                // Tidak memberikan warna untuk pengingat > 30 hari
                             }
 
                             // If not highlighted by Tanggal Pengingat, check Tanggal Berakhir
@@ -815,14 +817,11 @@
                                     row.addClass('highlight-red');
                                     expiredCount++;
                                 } else if (berakhirDate.isBefore(moment().add(30, 'days'))) {
-                                    row.addClass('highlight-yellow');
+                                    // Hanya berikan warna orange untuk dokumen yang akan berakhir dalam 30 hari
+                                    row.addClass('highlight-orange');
                                     warningCount++;
-                                } else {
-                                    // Only add orange if no other highlighting
-                                    if (!row.hasClass('highlight-red') && !row.hasClass('highlight-yellow')) {
-                                        row.addClass('highlight-orange');
-                                    }
                                 }
+                                // Tidak memberikan warna lain untuk dokumen yang berakhirnya > 30 hari
                             }
                         });
 
