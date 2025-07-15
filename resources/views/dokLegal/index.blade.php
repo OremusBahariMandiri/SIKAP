@@ -15,14 +15,9 @@
                             <button type="button" class="btn btn-light me-2" id="exportButton">
                                 <i class="fas fa-download me-1"></i> Export
                             </button>
-                            @php
-                                // Ambil data akses pengguna untuk dokLegal dari database
-                                $userAccess = Auth::user()->accessPermissions()
-                                    ->where('MenuAcs', 'dokLegal')
-                                    ->first();
-                            @endphp
 
-                            @if($userAccess && $userAccess->TambahAcs == 1)
+                            {{-- Tombol Tambah - Tampilkan jika admin atau memiliki izin tambah --}}
+                            @if ($isAdmin || $hasCreatePermission)
                                 <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
                                     <i class="fas fa-plus-circle me-1"></i> Tambah
                                 </a>
@@ -107,15 +102,8 @@
 
                                             <td>
                                                 <div class="d-flex gap-1">
-                                                    @php
-                                                        // Mendapatkan akses pengguna untuk dokLegal dari database
-                                                        $userAccess = Auth::user()->accessPermissions()
-                                                            ->where('MenuAcs', 'dokLegal')
-                                                            ->first();
-                                                    @endphp
-
-                                                    {{-- Detail button - tampilkan hanya jika DetailAcs = 1 --}}
-                                                    @if($userAccess && $userAccess->DetailAcs == 1)
+                                                    {{-- Detail button --}}
+                                                    @if ($isAdmin || $hasViewPermission)
                                                         <a href="{{ route('dokLegal.show', $dokLegal) }}"
                                                             class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
                                                             title="Detail">
@@ -123,8 +111,8 @@
                                                         </a>
                                                     @endif
 
-                                                    {{-- Edit button - tampilkan hanya jika UbahAcs = 1 --}}
-                                                    @if($userAccess && $userAccess->UbahAcs == 1)
+                                                    {{-- Edit button --}}
+                                                    @if ($isAdmin || $hasEditPermission)
                                                         <a href="{{ route('dokLegal.edit', $dokLegal) }}"
                                                             class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
                                                             title="Edit">
@@ -132,8 +120,8 @@
                                                         </a>
                                                     @endif
 
-                                                    {{-- Download button - tampilkan hanya jika DownloadAcs = 1 dan file ada --}}
-                                                    @if($userAccess && $userAccess->DownloadAcs == 1 && $dokLegal->FileDok)
+                                                    {{-- Download button - tampilkan hanya jika memiliki izin download dan file ada --}}
+                                                    @if (($isAdmin || $hasDownloadPermission) && $dokLegal->FileDok)
                                                         <a href="{{ route('dokLegal.download', $dokLegal) }}"
                                                             class="btn btn-sm btn-success" data-bs-toggle="tooltip"
                                                             title="Download">
@@ -141,8 +129,8 @@
                                                         </a>
                                                     @endif
 
-                                                    {{-- Delete button - tampilkan hanya jika HapusAcs = 1 --}}
-                                                    @if($userAccess && $userAccess->HapusAcs == 1)
+                                                    {{-- Delete button --}}
+                                                    @if ($isAdmin || $hasDeletePermission)
                                                         <button type="button" class="btn btn-sm btn-danger delete-confirm"
                                                             data-id="{{ $dokLegal->id }}"
                                                             data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
@@ -1023,13 +1011,11 @@
 
                         // Ambil hak akses pengguna untuk dokumen legal
                         @php
-                            $userAccess = Auth::user()->accessPermissions()
-                                ->where('MenuAcs', 'dokLegal')
-                                ->first();
+                            $userAccess = Auth::user()->accessPermissions()->where('MenuAcs', 'dokLegal')->first();
                         @endphp
 
                         // Hanya arahkan ke halaman detail jika memiliki akses DetailAcs
-                        @if($userAccess && $userAccess->DetailAcs == 1)
+                        @if ($userAccess && $userAccess->DetailAcs == 1)
                             // Dapatkan ID dokumen dari tombol detail
                             var detailLink = $(this).find('a[title="Detail"]').attr('href');
                             if (detailLink) {
