@@ -1,0 +1,587 @@
+/* Import Bootstrap CSS from node_modules */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Define variables for consistency */
+:root {
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 70px;
+    --topbar-height: 60px;
+
+    /* Sidebar blue color */
+    --sidebar-bg: #1270fc;
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255, 255, 255, 0.2);
+    --sidebar-active: rgba(255, 255, 255, 0.3);
+
+    /* Other colors */
+    --primary-color: #1270fc;
+    --primary-dark: #0a5bca;
+    --primary-light: #e8f1ff;
+    --transition-speed: 0.3s;
+}
+
+/* Base styles */
+body {
+    font-family: 'Figtree', sans-serif;
+    background-color: #f8f9fc;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--sidebar-bg);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-speed), width var(--transition-speed);
+}
+
+.sidebar-header {
+    height: var(--topbar-height);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-brand:hover {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+}
+
+.sidebar-close {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
+}
+
+.sidebar-menu {
+    margin-bottom: 1rem;
+}
+
+.sidebar-heading {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.5rem 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar .nav-item {
+    margin: 0 0.5rem;
+    position: relative;
+}
+
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--sidebar-text);
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all var(--transition-speed);
+    position: relative;
+    text-decoration: none;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--sidebar-hover);
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--sidebar-active);
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    width: 1.25rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+/* Submenu styling */
+.sidebar-menu-item {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.submenu-indicator {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.sidebar-menu-item.active .submenu-indicator,
+.sidebar-menu-item.open .submenu-indicator {
+    transform: rotate(180deg);
+}
+
+.sidebar-submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 0.375rem;
+    margin-top: 0.25rem;
+}
+
+.sidebar-submenu.show {
+    max-height: 1000px;
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    color: var(--sidebar-text);
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all var(--transition-speed);
+    position: relative;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.submenu-link:hover {
+    background-color: var(--sidebar-hover);
+    color: white;
+    text-decoration: none;
+}
+
+.submenu-link.active {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    font-weight: 600;
+}
+
+.submenu-link i {
+    width: 1.25rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.user-avatar {
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+    color: white;
+}
+
+.user-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    display: block;
+}
+
+.user-dropdown-menu {
+    padding: 0.5rem 0;
+    min-width: 200px;
+    background-color: white;
+}
+
+.user-dropdown-menu .dropdown-item {
+    padding: 0.5rem 1.25rem;
+    color: #333;
+}
+
+.user-dropdown-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+/* Main Content styles */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: margin var(--transition-speed);
+    width: calc(100% - var(--sidebar-width));
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure table fills the width */
+.main-content table {
+    width: 100%;
+    table-layout: auto;
+}
+
+/* Adjust when sidebar is collapsed */
+.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.topbar {
+    height: var(--topbar-height);
+    background-color: #fff;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.content-wrapper {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+/* Collapsed Sidebar */
+.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar-collapsed .brand-text,
+.sidebar-collapsed .nav-text,
+.sidebar-collapsed .submenu-indicator {
+    display: none;
+}
+
+.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.sidebar-collapsed .sidebar-heading,
+.sidebar-collapsed .user-info {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sidebar-collapsed .nav-link {
+    padding: 0.75rem;
+    justify-content: center;
+}
+
+.sidebar-collapsed .nav-link i {
+    margin-right: 0;
+}
+
+.sidebar-collapsed .sidebar-footer {
+    padding: 1rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.sidebar-collapsed .user-profile {
+    padding: 0;
+    justify-content: center;
+}
+
+/* Collapsed sidebar dropdown handling */
+.sidebar-collapsed .sidebar-submenu {
+    display: none;
+}
+
+.sidebar-collapsed .nav-item:hover .sidebar-submenu {
+    display: block;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 200px;
+    background-color: var(--sidebar-bg);
+    border-radius: 0 0.375rem 0.375rem 0;
+    box-shadow: 0.25rem 0 1rem rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    z-index: 1060;
+}
+
+.sidebar-collapsed .submenu-link {
+    padding: 0.6rem 1rem;
+}
+
+/* Mobile styles */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--transition-speed), visibility var(--transition-speed);
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .sidebar-close {
+        display: block;
+    }
+
+    /* Mobile sidebar active state */
+    .sidebar-active .sidebar {
+        transform: translateX(0);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-active .sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Mobile collapsed sidebar has no effect */
+    .sidebar-collapsed .sidebar {
+        width: var(--sidebar-width);
+    }
+
+    .sidebar-collapsed .brand-text,
+    .sidebar-collapsed .nav-text,
+    .sidebar-collapsed .submenu-indicator {
+        display: block;
+    }
+
+    .sidebar-collapsed .sidebar-heading,
+    .sidebar-collapsed .user-info {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .sidebar-collapsed .nav-link {
+        padding: 0.75rem 1rem;
+        justify-content: flex-start;
+    }
+
+    .sidebar-collapsed .nav-link i {
+        margin-right: 0.75rem;
+    }
+
+    .sidebar-collapsed .nav-item:hover .sidebar-submenu {
+        position: static;
+        box-shadow: none;
+        width: auto;
+        padding: 0;
+    }
+}
+
+/* Dropdown notifications */
+.dropdown-notifications {
+    max-width: 320px;
+    padding: 0;
+}
+
+.dropdown-notifications .dropdown-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.notification-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.notification-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.notification-footer {
+    padding: 0.5rem 1rem;
+    text-align: center;
+    background-color: #f8f9fa;
+}
+
+/* Card header untuk mencocokkan primary color */
+.card-header.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+/* Button primary untuk mencocokkan color theme */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* Scrollbar untuk sidebar */
+.sidebar-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* DataTables Styling */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+table.dataTable thead th {
+    position: relative;
+    background-image: none !important;
+}
+
+table.dataTable thead th.sorting:after,
+table.dataTable thead th.sorting_asc:after,
+table.dataTable thead th.sorting_desc:after {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    display: block;
+    font-family: "Font Awesome 5 Free";
+}
+
+table.dataTable thead th.sorting:after {
+    content: "\f0dc";
+    color: #ddd;
+    font-size: 0.8em;
+    opacity: 0.5;
+}
+
+table.dataTable thead th.sorting_asc:after {
+    content: "\f0de";
+}
+
+table.dataTable thead th.sorting_desc:after {
+    content: "\f0dd";
+}
+
+/* Add hover effect to action buttons */
+.btn-sm {
+    transition: transform 0.2s;
+}
+
+.btn-sm:hover {
+    transform: scale(1.1);
+}
+
