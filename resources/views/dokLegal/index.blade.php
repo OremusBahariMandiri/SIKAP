@@ -517,7 +517,6 @@
             <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
             <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.colVis.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
             <script>
                 $(document).ready(function() {
                     // Indonesian language configuration for DataTables
@@ -934,35 +933,144 @@
                         $('#exportModal').modal('hide');
                     });
 
-                    // Handle Delete Confirmation
-                    $(document).on('click', '.delete-confirm', function() {
-                        var hasPermission = $(this).data('has-permission') === 'true';
+                    // ======================== FIXED DELETE CONFIRMATION HANDLER ========================
+                    // Handle Delete Confirmation - FIXED VERSION
+                    $(document).on('click', '.delete-confirm', function(e) {
+                        // Prevent any default action
+                        e.preventDefault();
+                        e.stopPropagation();
 
+                        var hasPermission = $(this).data('has-permission') === 'true';
+                        var id = $(this).data('id');
+                        var name = $(this).data('name');
+
+                        // Check permission first BEFORE any modal operations
                         if (!hasPermission) {
-                            // Show SweetAlert2 directly without showing the delete confirmation modal
+                            // Show SweetAlert2 immediately for access denied
                             Swal.fire({
                                 title: 'Akses Ditolak',
                                 text: 'Maaf, Anda tidak memiliki hak akses untuk menghapus dokumen.',
                                 icon: 'error',
-                                confirmButtonText: 'OK'
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'swal-popup-above-modal'
+                                },
+                                // Ensure SweetAlert2 appears above any modal backdrop
+                                backdrop: true,
+                                allowOutsideClick: true,
+                                allowEscapeKey: true
                             });
-                            return; // Stop execution here
+                            return; // Stop execution immediately
                         }
 
-                        // If user has permission, continue with showing the delete confirmation modal
+                        // If user has permission, show delete confirmation modal
+                        $('#dokNoRegToDelete').text(name);
+
+                        // Set form action URL
+                        var deleteUrl = "{{ url('dokLegal') }}/" + id;
+                        $('#deleteForm').attr('action', deleteUrl);
+
+                        // Show the delete confirmation modal
+                        $('#deleteConfirmationModal').modal('show');
+                    });
+
+                    // Alternative approach: Handle permission check with custom confirmation dialog
+                    function showDeleteConfirmation(id, name, hasPermission) {
+                        if (!hasPermission) {
+                            // Use a custom styled alert instead of modal
+                            showAccessDeniedAlert();
+                            return;
+                        }
+
+                        // Show delete confirmation using SweetAlert2
+                        Swal.fire({
+                            title: 'Konfirmasi Hapus',
+                            html: `
+                                <div class="text-start">
+                                    <p>Apakah Anda yakin ingin menghapus dokumen dengan No. Reg <strong>${name}</strong>?</p>
+                                    <p class="text-danger"><i class="fas fa-info-circle me-1"></i>Tindakan ini tidak dapat dibatalkan!</p>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '<i class="fas fa-trash me-1"></i>Hapus',
+                            cancelButtonText: '<i class="fas fa-times me-1"></i>Batal',
+                            customClass: {
+                                popup: 'swal-wide'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Create and submit delete form
+                                var form = $('<form>', {
+                                    'method': 'POST',
+                                    'action': "{{ url('dokLegal') }}/" + id
+                                });
+
+                                form.append($('<input>', {
+                                    'type': 'hidden',
+                                    'name': '_token',
+                                    'value': $('meta[name="csrf-token"]').attr('content')
+                                }));
+
+                                form.append($('<input>', {
+                                    'type': 'hidden',
+                                    'name': '_method',
+                                    'value': 'DELETE'
+                                }));
+
+                                $('body').append(form);
+                                form.submit();
+                            }
+                        });
+                    }
+
+                    // Function to show access denied alert
+                    function showAccessDeniedAlert() {
+                        // Create a custom toast notification
+                        const toast = $(`
+                            <div class="toast align-items-center text-white bg-danger border-0 position-fixed"
+                                 style="top: 20px; right: 20px; z-index: 9999;"
+                                 role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <strong>Akses Ditolak!</strong><br>
+                                        Anda tidak memiliki hak akses untuk menghapus dokumen.
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                            data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        `);
+
+                        $('body').append(toast);
+                        const bsToast = new bootstrap.Toast(toast[0], {
+                            autohide: true,
+                            delay: 5000
+                        });
+                        bsToast.show();
+
+                        // Remove toast element after it's hidden
+                        toast.on('hidden.bs.toast', function() {
+                            $(this).remove();
+                        });
+                    }
+
+                    // Alternative delete button handler using the new approach
+                    $(document).on('click', '.delete-confirm-alt', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        var hasPermission = $(this).data('has-permission') === 'true';
                         var id = $(this).data('id');
                         var name = $(this).data('name');
 
-                        // Set dokumen No.Reg in modal
-                        $('#dokNoRegToDelete').text(name);
-
-                        // Set form action URL with the correct URL from the data attribute
-                        var url = $(this).data('url') || $(this).data('route') || "{{ url('dokLegal') }}/" + id;
-                        $('#deleteForm').attr('action', url);
-
-                        // Show modal
-                        $('#deleteConfirmationModal').modal('show');
+                        showDeleteConfirmation(id, name, hasPermission);
                     });
+
+                    // ======================== END FIXED DELETE CONFIRMATION HANDLER ========================
 
                     // Tambahkan efek klik pada baris tabel untuk menuju halaman detail
                     $('#dokLegalTable tbody').on('click', 'tr', function(e) {
