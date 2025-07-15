@@ -37,23 +37,8 @@ class DokLegalController extends Controller
         // Ambil jenis masa berlaku untuk filter dropdown
         $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
         $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'HapusAcs');
-        $hasEditPermission = auth()->user()->hasAccess('dokLegal', 'EditAcs');
-        $hasViewPermission = auth()->user()->hasAccess('dokLegal', 'ViewAcs');
-        $hasDownloadPermission = auth()->user()->hasAccess('dokLegal', 'DownloadAcs');
-        $hasCreatePermission = auth()->user()->hasAccess('dokLegal', 'CreateAcs');
 
-        return view('dokLegal.index', compact(
-            'dokLegals',
-            'kategoris',
-            'jenisDoks',
-            'jenisMasaBerlaku',
-            'perusahaans',
-            'hasDeletePermission',
-            'hasEditPermission',
-            'hasViewPermission',
-            'hasDownloadPermission',
-            'hasCreatePermission'
-        ));
+        return view('dokLegal.index', compact('dokLegals', 'kategoris', 'jenisDoks', 'jenisMasaBerlaku', 'perusahaans', 'hasDeletePermission'));
     }
     /**
      * Show the form for creating a new resource.
