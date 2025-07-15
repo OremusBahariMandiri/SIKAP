@@ -26,8 +26,17 @@
                                     <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Jenis Dokumen</h5>
                                 </div>
                                 <div class="card-body">
-
-
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Kategori Dokumen</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-folder"></i></span>
+                                                <div class="form-control">
+                                                    {{ $jenisDok->kategori ? $jenisDok->kategori->KategoriDok : 'Tidak Ada Kategori' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="info-group mb-3">
                                         <label class="info-label fw-bold">Jenis Dokumen</label>
                                         <div class="info-value">
@@ -37,6 +46,8 @@
                                             </div>
                                         </div>
                                     </div>
+
+
 
                                     <div class="info-group mb-3">
                                         <label class="info-label fw-bold">Dibuat pada</label>

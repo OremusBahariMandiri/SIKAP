@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JenisDok;
+use App\Models\KategoriDok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,7 @@ class JenisDokController extends Controller
      */
     public function index()
     {
-        $jenisDoks = JenisDok::all();
+        $jenisDoks = JenisDok::with('kategori')->get();
         return view('jenis-dok.index', compact('jenisDoks'));
     }
 
@@ -26,8 +27,9 @@ class JenisDokController extends Controller
     {
         // Generate kode ID otomatis
         $idKode = JenisDok::generateIdKode();
+        $kategoriDokumen = KategoriDok::orderBy('KategoriDok', 'asc')->get();
 
-        return view('jenis-dok.create', compact('idKode'));
+        return view('jenis-dok.create', compact('idKode', 'kategoriDokumen'));
     }
 
     /**
@@ -38,6 +40,10 @@ class JenisDokController extends Controller
         $validator = Validator::make($request->all(), [
             'IdKode' => 'required|string|max:10|unique:A05DmJenisDok,IdKode',
             'JenisDok' => 'required|string|max:100',
+            'idKategoriDok' => 'required|exists:A04DmKategoriDok,id',
+        ], [
+            'idKategoriDok.required' => 'Kategori dokumen harus dipilih.',
+            'idKategoriDok.exists' => 'Kategori dokumen yang dipilih tidak valid.',
         ]);
 
         if ($validator->fails()) {
@@ -56,6 +62,7 @@ class JenisDokController extends Controller
      */
     public function show(JenisDok $jenisDok)
     {
+        $jenisDok->load('kategori', 'dokumenLegal');
         return view('jenis-dok.show', compact('jenisDok'));
     }
 
@@ -64,7 +71,8 @@ class JenisDokController extends Controller
      */
     public function edit(JenisDok $jenisDok)
     {
-        return view('jenis-dok.edit', compact('jenisDok'));
+        $kategoriDokumen = KategoriDok::orderBy('KategoriDok', 'asc')->get();
+        return view('jenis-dok.edit', compact('jenisDok', 'kategoriDokumen'));
     }
 
     /**
@@ -80,6 +88,10 @@ class JenisDokController extends Controller
                 Rule::unique('A05DmJenisDok', 'IdKode')->ignore($jenisDok->id)
             ],
             'JenisDok' => 'required|string|max:100',
+            'idKategoriDok' => 'required|exists:A04DmKategoriDok,id',
+        ], [
+            'idKategoriDok.required' => 'Kategori dokumen harus dipilih.',
+            'idKategoriDok.exists' => 'Kategori dokumen yang dipilih tidak valid.',
         ]);
 
         if ($validator->fails()) {

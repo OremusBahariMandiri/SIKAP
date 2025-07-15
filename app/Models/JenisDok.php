@@ -15,7 +15,7 @@ class JenisDok extends Model
      *
      * @var string
      */
-    protected $table = 'A05DmJenisDok';
+    protected $table = 'A05DmJenisDok'; // Adjust if your table name is different
 
     /**
      * The attributes that are mass assignable.
@@ -25,7 +25,24 @@ class JenisDok extends Model
     protected $fillable = [
         'IdKode',
         'JenisDok',
+        'idKategoriDok',
     ];
+
+    /**
+     * Get the kategori associated with the document type.
+     */
+    public function kategori()
+    {
+        return $this->belongsTo(KategoriDok::class, 'idKategoriDok');
+    }
+
+    /**
+     * Get dokumen legal with this jenis dokumen
+     */
+    public function dokumenLegal()
+    {
+        return $this->hasMany(DokLegal::class, 'jenis_id');
+    }
 
     /**
      * Generate ID Kode with format A030725001
@@ -57,13 +74,5 @@ class JenisDok extends Model
         $formattedIncrement = str_pad($newIncrement, 3, '0', STR_PAD_LEFT);
 
         return "A03{$month}{$year}{$formattedIncrement}";
-    }
-
-    /**
-     * Get dokumen legal with this jenis
-     */
-    public function dokumenLegal()
-    {
-        return $this->hasMany(DokLegal::class, 'JenisDok', 'JenisDok');
     }
 }

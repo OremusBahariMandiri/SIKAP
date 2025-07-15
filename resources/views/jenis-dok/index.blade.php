@@ -32,7 +32,8 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width:5%">No</th>
-                                    <th style="width: 80%">Jenis Dokumen</th>
+                                    <th style="width:45%">Jenis Dokumen</th>
+                                    <th style="width:35%">Kategori</th>
                                     <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -41,6 +42,7 @@
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $jenis->JenisDok }}</td>
+                                        <td>{{ $jenis->kategori ? $jenis->kategori->KategoriDok : 'Tidak Ada Kategori' }}</td>
                                         <td>
                                             <div class="d-flex gap-1 justify-content-center">
                                                 <a href="{{ route('jenis-dok.show', $jenis->id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Detail">
@@ -107,7 +109,7 @@
     .dataTables_wrapper .dataTables_filter {
         margin-bottom: 1rem;
     }
-    
+
     .dataTables_wrapper .dataTables_filter input {
         width: 200px !important;
         max-width: 100% !important;
@@ -197,11 +199,11 @@ $(document).ready(function() {
         language: indonesianLanguage,
         columnDefs: [{
             responsivePriority: 1,
-            targets: [0, 1, 2]
+            targets: [0, 1, 2, 3]
         },
         {
             orderable: false,
-            targets: [2]
+            targets: [3]
         }],
         initComplete: function() {
             // Force style search input box
