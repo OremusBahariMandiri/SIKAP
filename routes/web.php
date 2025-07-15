@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['access:dokLegal,detail'])->group(function () {
         Route::get('/dokLegal', [DokLegalController::class, 'index'])->name('dokLegal.index');
         Route::get('/dokLegal/{dokLegal}', [DokLegalController::class, 'show'])->name('dokLegal.show')->where('dokLegal', '[0-9]+');
+        Route::get('/dokLegal/{dokLegal}/view', [DokLegalController::class, 'view'])->name('dokLegal.view');
     });
 
     Route::middleware(['access:dokLegal,download'])->group(function () {
@@ -139,6 +140,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['access:kategori-dok,detail'])->group(function () {
         Route::get('/kategori-dok', [KategoriDokController::class, 'index'])->name('kategori-dok.index');
         Route::get('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'show'])->name('kategori-dok.show')->where('kategoriDok', '[0-9]+');
+
     });
 
     Route::middleware(['access:kategori-dok,ubah'])->group(function () {

@@ -346,7 +346,7 @@ class DokLegalController extends Controller
 
         // Membersihkan string dari karakter yang tidak valid untuk nama file (Windows & Linux)
         // Karakter tidak valid: / \ : * ? " < > |
-        $sanitizeFileName = function($string) {
+        $sanitizeFileName = function ($string) {
             // Pertama ganti semua karakter tidak valid dengan tanda strip
             $cleaned = preg_replace('/[\/\\\:*?"<>|]/', '-', $string);
             // Hilangkan kemungkinan tanda strip berlebih
@@ -362,9 +362,9 @@ class DokLegalController extends Controller
 
         // Buat nama file dengan format: NoRegDok_JenisDok_PeruntukanDok_TanggalTerbit
         $newFileName = $cleanNoRegDok . '_' .
-                      $cleanJenisDok . '_' .
-                      $cleanPeruntukanDok . '_' .
-                      $tanggalTerbit . '.' . $originalExtension;
+            $cleanJenisDok . '_' .
+            $cleanPeruntukanDok . '_' .
+            $tanggalTerbit . '.' . $originalExtension;
 
         // Menyiapkan file untuk diunduh dengan nama yang telah diformat
         return Storage::disk('public')->download(
@@ -431,5 +431,66 @@ class DokLegalController extends Controller
             'id' => $dokLegal->id,
             'TglPengingat' => $dokLegal->TglPengingat ? $dokLegal->TglPengingat->format('Y-m-d') : null
         ]);
+    }
+    public function view(DokLegal $dokLegal)
+    {
+        // Pastikan file ada
+        if (!$dokLegal->FileDok) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        // Path file - PERLU DIREVISI: menggunakan path yang benar sesuai dengan store method
+        $filePath = storage_path('app/public/uploads/dokumen/' . $dokLegal->FileDok);
+
+        // Cek apakah file ada
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        // Dapatkan informasi file
+        $fileInfo = pathinfo($filePath);
+        $extension = strtolower($fileInfo['extension']);
+
+        // Tentukan content type berdasarkan ekstensi file
+        $contentTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'txt' => 'text/plain',
+        ];
+
+        $contentType = $contentTypes[$extension] ?? 'application/octet-stream';
+
+        // Untuk file yang dapat ditampilkan di browser (PDF, gambar, txt)
+        if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'])) {
+            return response()->file($filePath, [
+                'Content-Type' => $contentType,
+                'Content-Disposition' => 'inline; filename="' . $dokLegal->FileDok . '"'
+            ]);
+        }
+
+        // Untuk file Office (Word, Excel, PowerPoint) - gunakan Google Docs Viewer
+        if (in_array($extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
+            // PERLU DIREVISI: URL harus menunjuk ke direktori yang benar
+            $fileUrl = url('storage/uploads/dokumen/' . $dokLegal->FileDok);
+            $googleViewerUrl = 'https://docs.google.com/viewer?url=' . urlencode($fileUrl) . '&embedded=true';
+
+            return view('dokLegal.viewer', [
+                'dokLegal' => $dokLegal,
+                'viewerUrl' => $googleViewerUrl,
+                'fileName' => $dokLegal->FileDok
+            ]);
+        }
+
+        // Jika file tidak dapat dipreview, redirect ke download
+        return redirect()->route('dokLegal.download', $dokLegal);
     }
 }
