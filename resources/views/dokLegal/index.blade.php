@@ -15,11 +15,9 @@
                             <button type="button" class="btn btn-light me-2" id="exportButton">
                                 <i class="fas fa-download me-1"></i> Export
                             </button>
-                            @if ($hasCreatePermission)
-                                <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
-                                    <i class="fas fa-plus-circle me-1"></i> Tambah
-                                </a>
-                            @endif
+                            <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
+                                <i class="fas fa-plus-circle me-1"></i> Tambah
+                            </a>
                         </div>
                     </div>
 
@@ -97,40 +95,33 @@
                                                         class="badge bg-warning text-dark">{{ $dokLegal->StsBerlakuDok }}</span>
                                                 @endif
                                             </td>
+
                                             <td>
                                                 <div class="d-flex gap-1">
-                                                    @if ($hasViewPermission)
-                                                        <a href="{{ route('dokLegal.show', $dokLegal) }}"
-                                                            class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
-                                                            title="Detail">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                    @endif
-
-                                                    @if ($hasEditPermission)
-                                                        <a href="{{ route('dokLegal.edit', $dokLegal) }}"
-                                                            class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
-                                                            title="Edit">
-                                                            <i class="fas fa-edit text-white"></i>
-                                                        </a>
-                                                    @endif
-
-                                                    @if ($hasDownloadPermission && $dokLegal->FileDok)
+                                                    <a href="{{ route('dokLegal.show', $dokLegal) }}"
+                                                        class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
+                                                        title="Detail">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route('dokLegal.edit', $dokLegal) }}"
+                                                        class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
+                                                        title="Edit">
+                                                        <i class="fas fa-edit text-white"></i>
+                                                    </a>
+                                                    @if ($dokLegal->FileDok)
                                                         <a href="{{ route('dokLegal.download', $dokLegal) }}"
                                                             class="btn btn-sm btn-success" data-bs-toggle="tooltip"
                                                             title="Download">
                                                             <i class="fas fa-download"></i>
                                                         </a>
                                                     @endif
-
-                                                    @if ($hasDeletePermission)
-                                                        <button type="button" class="btn btn-sm btn-danger delete-confirm"
-                                                            data-id="{{ $dokLegal->id }}"
-                                                            data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
-                                                            data-has-permission="true" title="Hapus">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    @endif
+                                                    <button type="button" class="btn btn-sm btn-danger delete-confirm"
+                                                        data-id="{{ $dokLegal->id }}"
+                                                        data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
+                                                        data-has-permission="{{ $hasDeletePermission ? 'true' : 'false' }}"
+                                                        title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </td>
 
@@ -945,16 +936,41 @@
                     // ======================== FIXED DELETE CONFIRMATION HANDLER ========================
                     // Handle Delete Confirmation - FIXED VERSION
                     $(document).on('click', '.delete-confirm', function(e) {
+                        // Prevent any default action
                         e.preventDefault();
                         e.stopPropagation();
 
+                        var hasPermission = $(this).data('has-permission') === 'true';
                         var id = $(this).data('id');
                         var name = $(this).data('name');
 
-                        // Langsung tampilkan modal konfirmasi tanpa cek permission
+                        // Check permission first BEFORE any modal operations
+                        if (!hasPermission) {
+                            // Show SweetAlert2 immediately for access denied
+                            Swal.fire({
+                                title: 'Akses Ditolak',
+                                text: 'Maaf, Anda tidak memiliki hak akses untuk menghapus dokumen.',
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'swal-popup-above-modal'
+                                },
+                                // Ensure SweetAlert2 appears above any modal backdrop
+                                backdrop: true,
+                                allowOutsideClick: true,
+                                allowEscapeKey: true
+                            });
+                            return; // Stop execution immediately
+                        }
+
+                        // If user has permission, show delete confirmation modal
                         $('#dokNoRegToDelete').text(name);
+
+                        // Set form action URL
                         var deleteUrl = "{{ url('dokLegal') }}/" + id;
                         $('#deleteForm').attr('action', deleteUrl);
+
+                        // Show the delete confirmation modal
                         $('#deleteConfirmationModal').modal('show');
                     });
 
