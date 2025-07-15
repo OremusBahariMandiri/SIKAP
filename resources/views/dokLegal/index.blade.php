@@ -20,7 +20,7 @@
                             </a>
                         </div>
                     </div>
-                
+
                     <div class="card-body">
                         @if (session('success'))
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -37,6 +37,17 @@
                                     aria-label="Close"></button>
                             </div>
                         @endif
+
+                        <div class="mb-3 document-status-summary">
+                            <span id="expiredDocsBadge" class="badge bg-danger me-2" style="font-size: 0.9rem;">
+                                <i class="fas fa-exclamation-circle me-1"></i> Dokumen Expired : <span
+                                    id="expiredDocsCount">0</span>
+                            </span>
+                            <span id="warningDocsBadge" class="badge bg-warning text-dark me-2" style="font-size: 0.9rem;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Dokumen Akan Expired : <span
+                                    id="warningDocsCount">0</span>
+                            </span>
+                        </div>
 
                         <div class="table-responsive">
                             <table id="dokLegalTable" class="table table-bordered table-striped">
@@ -93,7 +104,7 @@
                                                         <i class="fas fa-eye"></i>
                                                     </a>
                                                     <a href="{{ route('dokLegal.edit', $dokLegal) }}"
-                                                        class="btn btn-sm btn-warning" data-bs-toggle="tooltip"
+                                                        class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
                                                         title="Edit">
                                                         <i class="fas fa-edit text-white"></i>
                                                     </a>
@@ -107,6 +118,7 @@
                                                     <button type="button" class="btn btn-sm btn-danger delete-confirm"
                                                         data-id="{{ $dokLegal->id }}"
                                                         data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
+                                                        data-has-permission="{{ $hasDeletePermission ? 'true' : 'false' }}"
                                                         title="Hapus">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
@@ -163,6 +175,12 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="filter_peruntukan" class="form-label">Peruntukan</label>
+                                    <select class="form-select" id="filter_peruntukan">
+                                        <option value="">Semua Peruntukan</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -172,6 +190,12 @@
                                         @foreach ($jenisDoks as $jenis)
                                             <option value="{{ $jenis }}">{{ $jenis }}</option>
                                         @endforeach
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="filter_atas_nama" class="form-label">Atas Nama</label>
+                                    <select class="form-select" id="filter_atas_nama">
+                                        <option value="">Semua Atas Nama</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
@@ -632,23 +656,63 @@
                             }
                         ],
                         initComplete: function() {
-                            // Implementasi custom filter
+                            // Mendapatkan data unik untuk dropdown Peruntukan dan Atas Nama
+                            let uniquePeruntukan = new Set();
+                            let uniqueAtasNama = new Set();
+
+                            // Iterasi semua data pada tabel untuk mengumpulkan nilai unik
+                            $('#dokLegalTable tbody tr').each(function() {
+                                const peruntukan = $(this).find('td:eq(5)').text()
+                            .trim(); // Kolom Peruntukan (index 5)
+                                const atasNama = $(this).find('td:eq(6)').text()
+                            .trim(); // Kolom Atas Nama (index 6)
+
+                                if (peruntukan) uniquePeruntukan.add(peruntukan);
+                                if (atasNama) uniqueAtasNama.add(atasNama);
+                            });
+
+                            // Mengisi dropdown Peruntukan dengan nilai unik yang ditemukan
+                            $('#filter_peruntukan').find('option:not(:first)').remove();
+                            Array.from(uniquePeruntukan).sort().forEach(function(peruntukan) {
+                                $('#filter_peruntukan').append('<option value="' + peruntukan + '">' +
+                                    peruntukan + '</option>');
+                            });
+
+                            // Mengisi dropdown Atas Nama dengan nilai unik yang ditemukan
+                            $('#filter_atas_nama').find('option:not(:first)').remove();
+                            Array.from(uniqueAtasNama).sort().forEach(function(atasNama) {
+                                $('#filter_atas_nama').append('<option value="' + atasNama + '">' +
+                                    atasNama + '</option>');
+                            });
+
+                            // Implementasi custom filter untuk kolom-kolom lainnya (Perusahaan, Kategori, Jenis)
                             this.api().columns([2, 3, 4]).each(function(index) {
                                 let column = this;
                                 let select = null;
 
-                                if (index === 0) {
-                                    select = $('#filter_perusahaan');
-                                } else if (index === 1) {
-                                    select = $('#filter_kategori');
-                                } else if (index === 2) {
-                                    select = $('#filter_jenis');
+                                // Menentukan select berdasarkan index kolom
+                                switch (index) {
+                                    case 0: // Perusahaan (kolom index 2)
+                                        select = $('#filter_perusahaan');
+                                        break;
+                                    case 1: // Kategori (kolom index 3)
+                                        select = $('#filter_kategori');
+                                        break;
+                                    case 2: // Jenis (kolom index 4)
+                                        select = $('#filter_jenis');
+                                        break;
                                 }
 
-                                // Reset select options jika kosong
-                                if (select && select.children('option').length <= 1) {
+                                // Populate opsi filter dengan nilai unik dari kolom
+                                if (select) {
+                                    // Reset select options (kecuali opsi default "Semua")
+                                    select.find('option:not(:first)').remove();
+
+                                    // Tambahkan opsi dari data kolom
+                                    let uniqueValues = new Set();
                                     column.data().unique().sort().each(function(d, j) {
-                                        if (d && d.trim() !== '') {
+                                        if (d && d.trim() !== '' && !uniqueValues.has(d)) {
+                                            uniqueValues.add(d);
                                             select.append('<option value="' + d + '">' + d +
                                                 '</option>');
                                         }
@@ -669,6 +733,9 @@
 
                     // Function untuk highlight status rows berdasarkan tanggal berakhir
                     function highlightStatusRows() {
+                        let expiredCount = 0;
+                        let warningCount = 0;
+
                         $('#dokLegalTable tbody tr').each(function() {
                             let tglBerakhir = $(this).find('td:eq(8)').text();
                             if (tglBerakhir !== '-') {
@@ -677,18 +744,39 @@
 
                                 if (berakhirDate.isBefore(today)) {
                                     $(this).addClass('highlight-red');
+                                    expiredCount++;
                                 } else if (berakhirDate.isBefore(moment().add(30, 'days'))) {
                                     $(this).addClass('highlight-yellow');
+                                    warningCount++;
                                 } else {
                                     $(this).addClass('highlight-orange');
                                 }
                             }
                         });
+
+                        // Update the badge counters
+                        $('#expiredDocsCount').text(expiredCount);
+                        $('#warningDocsCount').text(warningCount);
+
+                        // Hide badges if count is zero
+                        if (expiredCount === 0) {
+                            $('#expiredDocsBadge').hide();
+                        } else {
+                            $('#expiredDocsBadge').show();
+                        }
+
+                        if (warningCount === 0) {
+                            $('#warningDocsBadge').hide();
+                        } else {
+                            $('#warningDocsBadge').show();
+                        }
                     }
 
                     // Function untuk menghitung dan memperbarui masa peringatan berdasarkan tanggal saat ini
                     function updateMasaPeringatan() {
                         const today = moment();
+                        let expiredCount = 0;
+                        let warningCount = 0;
 
                         $('#dokLegalTable tbody tr').each(function() {
                             const tglPengingatStr = $(this).data('tgl-peringatan');
@@ -716,10 +804,12 @@
                                 // Tanggal pengingat sudah lewat
                                 masaPeringatanText = 'Terlambat ' + Math.abs(diffDays) + ' hari';
                                 $(this).addClass('highlight-red');
+                                expiredCount++;
                             } else if (diffDays === 0) {
                                 // Tanggal pengingat hari ini
                                 masaPeringatanText = 'Hari ini';
                                 $(this).addClass('highlight-red');
+                                expiredCount++;
                             } else {
                                 // Tanggal pengingat di masa depan
                                 masaPeringatanText = diffDays + ' hari lagi';
@@ -727,14 +817,33 @@
                                 // Tambahkan warna latar berdasarkan seberapa dekat tanggal pengingat
                                 if (diffDays <= 7) {
                                     $(this).addClass('highlight-yellow');
+                                    warningCount++;
                                 } else if (diffDays <= 30) {
                                     $(this).addClass('highlight-orange');
+                                    warningCount++;
                                 }
                             }
 
                             // Update teks masa peringatan
                             $masaPeringatanCol.text(masaPeringatanText);
                         });
+
+                        // Update the badge counters
+                        $('#expiredDocsCount').text(expiredCount);
+                        $('#warningDocsCount').text(warningCount);
+
+                        // Hide badges if count is zero
+                        if (expiredCount === 0) {
+                            $('#expiredDocsBadge').hide();
+                        } else {
+                            $('#expiredDocsBadge').show();
+                        }
+
+                        if (warningCount === 0) {
+                            $('#warningDocsBadge').hide();
+                        } else {
+                            $('#warningDocsBadge').show();
+                        }
                     }
 
                     // Event untuk filter dan export button
@@ -748,11 +857,18 @@
 
                     // Apply filter saat tombol filter diklik
                     $('#applyFilter').on('click', function() {
-                        // Terapkan filter untuk No. Reg dan Perusahaan
+                        // Terapkan filter untuk kolom-kolom
                         table.column(1).search($('#filter_noreg').val());
                         table.column(2).search($('#filter_perusahaan').val());
                         table.column(3).search($('#filter_kategori').val());
                         table.column(4).search($('#filter_jenis').val());
+                        table.column(5).search($('#filter_peruntukan').val()); // Filter untuk Peruntukan
+                        table.column(6).search($('#filter_atas_nama').val()); // Filter untuk Atas Nama
+
+                        // Filter status berlaku
+                        if ($('#filter_sts_berlaku').val()) {
+                            table.column(11).search($('#filter_sts_berlaku').val());
+                        }
 
                         // Refresh table untuk menerapkan semua filter termasuk tgl_terbit dan tgl_berakhir
                         table.draw();
@@ -775,11 +891,14 @@
                             $('#filter_perusahaan').val() ||
                             $('#filter_kategori').val() ||
                             $('#filter_jenis').val() ||
+                            $('#filter_peruntukan').val() ||
+                            $('#filter_atas_nama').val() ||
                             $('#filter_tgl_terbit_from').val() ||
                             $('#filter_tgl_terbit_to').val() ||
                             $('#filter_tgl_berakhir_from').val() ||
                             $('#filter_tgl_berakhir_to').val() ||
-                            $('#filter_status').val()) {
+                            $('#filter_status').val() ||
+                            $('#filter_sts_berlaku').val()) {
                             $('#filterButton').addClass('filter-active');
                         } else {
                             $('#filterButton').removeClass('filter-active');
@@ -803,7 +922,22 @@
                     });
 
                     // Handle Delete Confirmation
+                    // Handle Delete Confirmation
                     $(document).on('click', '.delete-confirm', function() {
+                        var hasPermission = $(this).data('has-permission') === 'true';
+
+                        if (!hasPermission) {
+                            // Show SweetAlert2 directly without showing the delete confirmation modal
+                            Swal.fire({
+                                title: 'Akses Ditolak',
+                                text: 'Maaf, Anda tidak memiliki hak akses untuk menghapus dokumen.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            return; // Stop execution here
+                        }
+
+                        // If user has permission, continue with showing the delete confirmation modal
                         var id = $(this).data('id');
                         var name = $(this).data('name');
 
@@ -817,7 +951,6 @@
                         // Show modal
                         $('#deleteConfirmationModal').modal('show');
                     });
-
                     // Re-apply highlighting ketika page change atau search
                     table.on('draw', function() {
                         updateMasaPeringatan();
