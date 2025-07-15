@@ -36,8 +36,9 @@ class DokLegalController extends Controller
 
         // Ambil jenis masa berlaku untuk filter dropdown
         $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
+        $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'HapusAcs');
 
-        return view('dokLegal.index', compact('dokLegals', 'kategoris', 'jenisDoks', 'jenisMasaBerlaku', 'perusahaans'));
+        return view('dokLegal.index', compact('dokLegals', 'kategoris', 'jenisDoks', 'jenisMasaBerlaku', 'perusahaans', 'hasDeletePermission'));
     }
     /**
      * Show the form for creating a new resource.
@@ -387,7 +388,7 @@ class DokLegalController extends Controller
         // Dokumen hampir kedaluwarsa (tanggal berakhir dalam 30 hari)
         $hampirKedaluwarsa = DokLegal::whereNotNull('TglBerakhirDok')
             ->where('TglBerakhirDok', '>', now())
-            ->where('TglBerakhirDok', '<=', now()->addDays(30))
+            ->where('TglBerakhirDok', '<=', now()->addDays(15))
             ->count();
 
         // Dokumen kedaluwarsa (tanggal berakhir <= hari ini)
