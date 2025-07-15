@@ -498,6 +498,7 @@
         </style>
     @endpush
 
+
     <!-- BAGIAN JAVASCRIPT - LETAKKAN DI @push('scripts') -->
         @push('scripts')
             <!-- DataTables JS -->
@@ -663,9 +664,9 @@
                             // Iterasi semua data pada tabel untuk mengumpulkan nilai unik
                             $('#dokLegalTable tbody tr').each(function() {
                                 const peruntukan = $(this).find('td:eq(5)').text()
-                            .trim(); // Kolom Peruntukan (index 5)
+                                    .trim(); // Kolom Peruntukan (index 5)
                                 const atasNama = $(this).find('td:eq(6)').text()
-                            .trim(); // Kolom Atas Nama (index 6)
+                                    .trim(); // Kolom Atas Nama (index 6)
 
                                 if (peruntukan) uniquePeruntukan.add(peruntukan);
                                 if (atasNama) uniqueAtasNama.add(atasNama);
@@ -723,67 +724,19 @@
                             // Force style search input box
                             $('.dataTables_filter input').addClass('form-control');
 
-                            // Highlight baris berdasarkan status dokumen
-                            highlightStatusRows();
-
-                            // Menghitung dan update masa peringatan berdasarkan tanggal sekarang
-                            updateMasaPeringatan();
+                            // Perbarui masa peringatan dan terapkan highlighting
+                            updateMasaPeringatanText();
+                            applyOriginalHighlighting();
                         }
                     });
 
-                    // Function untuk highlight status rows berdasarkan tanggal berakhir
-                    function highlightStatusRows() {
-                        let expiredCount = 0;
-                        let warningCount = 0;
-
-                        $('#dokLegalTable tbody tr').each(function() {
-                            let tglBerakhir = $(this).find('td:eq(8)').text();
-                            if (tglBerakhir !== '-') {
-                                let berakhirDate = moment(tglBerakhir, 'DD/MM/YYYY');
-                                let today = moment();
-
-                                if (berakhirDate.isBefore(today)) {
-                                    $(this).addClass('highlight-red');
-                                    expiredCount++;
-                                } else if (berakhirDate.isBefore(moment().add(30, 'days'))) {
-                                    $(this).addClass('highlight-yellow');
-                                    warningCount++;
-                                } else {
-                                    $(this).addClass('highlight-orange');
-                                }
-                            }
-                        });
-
-                        // Update the badge counters
-                        $('#expiredDocsCount').text(expiredCount);
-                        $('#warningDocsCount').text(warningCount);
-
-                        // Hide badges if count is zero
-                        if (expiredCount === 0) {
-                            $('#expiredDocsBadge').hide();
-                        } else {
-                            $('#expiredDocsBadge').show();
-                        }
-
-                        if (warningCount === 0) {
-                            $('#warningDocsBadge').hide();
-                        } else {
-                            $('#warningDocsBadge').show();
-                        }
-                    }
-
-                    // Function untuk menghitung dan memperbarui masa peringatan berdasarkan tanggal saat ini
-                    function updateMasaPeringatan() {
+                    // Fungsi untuk memperbarui teks masa peringatan tanpa mengubah highlighting
+                    function updateMasaPeringatanText() {
                         const today = moment();
-                        let expiredCount = 0;
-                        let warningCount = 0;
 
                         $('#dokLegalTable tbody tr').each(function() {
                             const tglPengingatStr = $(this).data('tgl-peringatan');
                             const $masaPeringatanCol = $(this).find('.sisa-peringatan-col');
-
-                            // Hapus class yang mungkin ada sebelumnya
-                            $(this).removeClass('highlight-red highlight-yellow highlight-orange');
 
                             // Jika tidak ada tanggal pengingat, lewati baris ini
                             if (!tglPengingatStr) {
@@ -803,47 +756,93 @@
                             if (diffDays < 0) {
                                 // Tanggal pengingat sudah lewat
                                 masaPeringatanText = 'Terlambat ' + Math.abs(diffDays) + ' hari';
-                                $(this).addClass('highlight-red');
-                                expiredCount++;
                             } else if (diffDays === 0) {
                                 // Tanggal pengingat hari ini
                                 masaPeringatanText = 'Hari ini';
-                                $(this).addClass('highlight-red');
-                                expiredCount++;
                             } else {
                                 // Tanggal pengingat di masa depan
                                 masaPeringatanText = diffDays + ' hari lagi';
-
-                                // Tambahkan warna latar berdasarkan seberapa dekat tanggal pengingat
-                                if (diffDays <= 7) {
-                                    $(this).addClass('highlight-yellow');
-                                    warningCount++;
-                                } else if (diffDays <= 30) {
-                                    $(this).addClass('highlight-orange');
-                                    warningCount++;
-                                }
                             }
 
                             // Update teks masa peringatan
                             $masaPeringatanCol.text(masaPeringatanText);
+                        });
+                    }
+
+                    // Fungsi terpadu untuk menerapkan highlighting berdasarkan aturan bisnis yang benar
+                    function applyOriginalHighlighting() {
+                        // Reset counters
+                        let expiredCount = 0;
+                        let warningCount = 0;
+
+                        // Apply highlighting based on both dates
+                        $('#dokLegalTable tbody tr').each(function() {
+                            // Reset all highlight classes first
+                            $(this).removeClass('highlight-red highlight-yellow highlight-orange');
+
+                            const row = $(this);
+
+                            // Check Tanggal Pengingat first (higher priority)
+                            const tglPengingatStr = row.data('tgl-peringatan');
+                            if (tglPengingatStr) {
+                                const tglPengingat = moment(tglPengingatStr);
+                                const today = moment();
+                                const diffDays = tglPengingat.diff(today, 'days');
+
+                                if (diffDays < 0 || diffDays === 0) {
+                                    // Tanggal pengingat sudah lewat atau hari ini
+                                    row.addClass('highlight-red');
+                                    expiredCount++;
+                                    return; // Stop here - red has priority
+                                } else if (diffDays <= 7) {
+                                    row.addClass('highlight-yellow');
+                                    warningCount++;
+                                    return; // Stop here - yellow has next priority
+                                } else if (diffDays <= 30) {
+                                    row.addClass('highlight-orange');
+                                    warningCount++;
+                                    return; // Stop here
+                                }
+                            }
+
+                            // If not highlighted by Tanggal Pengingat, check Tanggal Berakhir
+                            const tglBerakhir = row.find('td:eq(8)').text();
+                            if (tglBerakhir !== '-') {
+                                const berakhirDate = moment(tglBerakhir, 'DD/MM/YYYY');
+                                const today = moment();
+
+                                if (berakhirDate.isBefore(today)) {
+                                    row.addClass('highlight-red');
+                                    expiredCount++;
+                                } else if (berakhirDate.isBefore(moment().add(30, 'days'))) {
+                                    row.addClass('highlight-yellow');
+                                    warningCount++;
+                                } else {
+                                    // Only add orange if no other highlighting
+                                    if (!row.hasClass('highlight-red') && !row.hasClass('highlight-yellow')) {
+                                        row.addClass('highlight-orange');
+                                    }
+                                }
+                            }
                         });
 
                         // Update the badge counters
                         $('#expiredDocsCount').text(expiredCount);
                         $('#warningDocsCount').text(warningCount);
 
-                        // Hide badges if count is zero
-                        if (expiredCount === 0) {
-                            $('#expiredDocsBadge').hide();
-                        } else {
-                            $('#expiredDocsBadge').show();
-                        }
+                        // Show/hide badges
+                        $('#expiredDocsBadge').toggle(expiredCount > 0);
+                        $('#warningDocsBadge').toggle(warningCount > 0);
+                    }
 
-                        if (warningCount === 0) {
-                            $('#warningDocsBadge').hide();
-                        } else {
-                            $('#warningDocsBadge').show();
-                        }
+                    // Fungsi untuk reset dan menerapkan highlight dengan benar
+                    function resetAndApplyHighlighting() {
+                        // Clear DataTable search and column filters but preserve the highlighting
+                        table.search('').columns().search('').draw();
+
+                        // Karena draw() pada DataTable bisa mengubah DOM, kita perlu mengaplikasikan ulang
+                        // highlighting dengan benar berdasarkan data asli
+                        applyOriginalHighlighting();
                     }
 
                     // Event untuk filter dan export button
@@ -855,34 +854,49 @@
                         $('#exportModal').modal('show');
                     });
 
-                    // Apply filter saat tombol filter diklik
+                    // Modifikasi event handler untuk tombol Apply Filter
                     $('#applyFilter').on('click', function() {
                         // Terapkan filter untuk kolom-kolom
                         table.column(1).search($('#filter_noreg').val());
                         table.column(2).search($('#filter_perusahaan').val());
                         table.column(3).search($('#filter_kategori').val());
                         table.column(4).search($('#filter_jenis').val());
-                        table.column(5).search($('#filter_peruntukan').val()); // Filter untuk Peruntukan
-                        table.column(6).search($('#filter_atas_nama').val()); // Filter untuk Atas Nama
+                        table.column(5).search($('#filter_peruntukan').val());
+                        table.column(6).search($('#filter_atas_nama').val());
 
                         // Filter status berlaku
                         if ($('#filter_sts_berlaku').val()) {
                             table.column(11).search($('#filter_sts_berlaku').val());
                         }
 
-                        // Refresh table untuk menerapkan semua filter termasuk tgl_terbit dan tgl_berakhir
+                        // Refresh table untuk menerapkan semua filter
                         table.draw();
                         $('#filterModal').modal('hide');
 
                         // Highlight filter button jika ada filter aktif
                         highlightFilterButton();
+
+                        // Penting: Pastikan warna highlight dipertahankan setelah filter
+                        // Kita perlu memanggil ini setelah table.draw() karena draw() mengubah DOM
+                        applyOriginalHighlighting();
                     });
 
-                    // Reset semua filter
+                    // Modify the Reset Filter event handler
                     $('#resetFilter').on('click', function() {
+                        // Reset the form fields
                         $('#filterForm')[0].reset();
-                        table.search('').columns().search('').draw();
+
+                        // Remove active class from filter button
                         $('#filterButton').removeClass('filter-active');
+
+                        // Apply proper highlighting while preserving original colors
+                        resetAndApplyHighlighting();
+                    });
+
+                    // Event listener untuk table draw event - untuk mempertahankan warna highlight setelah filter/paging/search
+                    table.on('draw', function() {
+                        // Pertahankan warna highlight asli setelah operasi tabel
+                        applyOriginalHighlighting();
                     });
 
                     // Highlight filter button jika ada filter aktif
@@ -922,7 +936,6 @@
                     });
 
                     // Handle Delete Confirmation
-                    // Handle Delete Confirmation
                     $(document).on('click', '.delete-confirm', function() {
                         var hasPermission = $(this).data('has-permission') === 'true';
 
@@ -951,11 +964,6 @@
                         // Show modal
                         $('#deleteConfirmationModal').modal('show');
                     });
-                    // Re-apply highlighting ketika page change atau search
-                    table.on('draw', function() {
-                        updateMasaPeringatan();
-                        highlightStatusRows();
-                    });
 
                     // Tambahkan efek klik pada baris tabel untuk menuju halaman detail
                     $('#dokLegalTable tbody').on('click', 'tr', function(e) {
@@ -983,12 +991,6 @@
                     setTimeout(function() {
                         $(".alert").fadeOut("slow");
                     }, 5000);
-
-                    // Panggil highlight functions setelah tabel selesai dimuat
-                    setTimeout(function() {
-                        highlightStatusRows();
-                        updateMasaPeringatan();
-                    }, 100);
                 });
             </script>
         @endpush
