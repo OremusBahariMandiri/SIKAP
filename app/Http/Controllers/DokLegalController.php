@@ -37,7 +37,7 @@ class DokLegalController extends Controller
         // Ambil jenis masa berlaku untuk filter dropdown
         $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
 
-        // Check if user is admin
+        // check if user is admin
         $isAdmin = auth()->user()->isAdmin();
 
         // If user is admin, grant all permissions
@@ -541,5 +541,47 @@ class DokLegalController extends Controller
 
         // Jika file tidak dapat dipreview, redirect ke download
         return redirect()->route('dokLegal.download', $dokLegal);
+    }
+    // Tambahkan method baru ke DokLegalController.php
+    public function getDocumentStats()
+    {
+        // Hitung dokumen yang expired berdasarkan TglPengingat atau TglBerakhirDok
+        $expiredCount = DokLegal::where(function ($query) {
+            // Dokumen dengan Tanggal Pengingat yang sudah lewat atau hari ini
+            $query->whereNotNull('TglPengingat')
+                ->where('TglPengingat', '<=', now());
+        })->orWhere(function ($query) {
+            // Atau dokumen dengan Tanggal Berakhir yang sudah lewat
+            $query->whereNotNull('TglBerakhirDok')
+                ->where('TglBerakhirDok', '<', now())
+                // Dan tidak memiliki TglPengingat yang sudah tercakup di kondisi sebelumnya
+                ->where(function ($q) {
+                    $q->whereNull('TglPengingat')
+                        ->orWhere('TglPengingat', '>', now());
+                });
+        })->count();
+
+        // Hitung dokumen yang akan expired (warning)
+        $warningCount = DokLegal::where(function ($query) {
+            // Dokumen dengan Tanggal Pengingat dalam 30 hari ke depan
+            $query->whereNotNull('TglPengingat')
+                ->where('TglPengingat', '>', now())
+                ->where('TglPengingat', '<=', now()->addDays(30));
+        })->orWhere(function ($query) {
+            // Atau dokumen dengan Tanggal Berakhir dalam 30 hari ke depan
+            $query->whereNotNull('TglBerakhirDok')
+                ->where('TglBerakhirDok', '>=', now())
+                ->where('TglBerakhirDok', '<=', now()->addDays(30))
+                // Dan tidak memiliki TglPengingat yang sudah tercakup di kondisi sebelumnya
+                ->where(function ($q) {
+                    $q->whereNull('TglPengingat')
+                        ->orWhere('TglPengingat', '>', now()->addDays(30));
+                });
+        })->count();
+
+        return response()->json([
+            'expired' => $expiredCount,
+            'warning' => $warningCount
+        ]);
     }
 }

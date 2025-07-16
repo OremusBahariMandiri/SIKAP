@@ -117,7 +117,7 @@
                                                     @if ($isAdmin || $hasEditPermission)
                                                         <a href="{{ route('dokLegal.edit', $dokLegal) }}"
                                                             class="btn btn-sm text-white" data-bs-toggle="tooltip"
-                                                            title="Edit" style="background-color: #e67e22;">
+                                                            title="Edit" style="background-color: #8e44ad;">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     @endif
@@ -126,7 +126,7 @@
                                                     @if (($isAdmin || $hasDownloadPermission) && $dokLegal->FileDok)
                                                         <a href="{{ route('dokLegal.download', $dokLegal) }}"
                                                             class="btn btn-sm text-white" data-bs-toggle="tooltip"
-                                                            title="Download" style="background-color: #2c3e50;">
+                                                            title="Download" style="background-color: #2980b9;">
                                                             <i class="fas fa-download"></i>
                                                         </a>
                                                     @endif
@@ -136,7 +136,7 @@
                                                         <button type="button" class="btn btn-sm delete-confirm text-white"
                                                             data-id="{{ $dokLegal->id }}"
                                                             data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
-                                                            title="Hapus" style="background-color: #95a5a6;">
+                                                            title="Hapus" style="background-color: #f700ff;">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     @endif
@@ -166,13 +166,14 @@
                 </div>
                 <div class="modal-body">
                     <form id="filterForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="filter_noreg" class="form-label">Nomor Registrasi</label>
                                     <input type="text" class="form-control" id="filter_noreg"
                                         placeholder="Masukan No Registrasi">
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="filter_perusahaan" class="form-label">Perusahaan</label>
                                     <select class="form-select" id="filter_perusahaan">
@@ -182,6 +183,7 @@
                                         @endforeach
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="filter_kategori" class="form-label">Kategori</label>
                                     <select class="form-select" id="filter_kategori">
@@ -191,14 +193,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="filter_peruntukan" class="form-label">Peruntukan</label>
-                                    <select class="form-select" id="filter_peruntukan">
-                                        <option value="">Semua Peruntukan</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+
                                 <div class="mb-3">
                                     <label for="filter_jenis" class="form-label">Jenis Dokumen</label>
                                     <select class="form-select" id="filter_jenis">
@@ -208,12 +203,21 @@
                                         @endforeach
                                     </select>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_peruntukan" class="form-label">Peruntukan</label>
+                                    <select class="form-select" id="filter_peruntukan">
+                                        <option value="">Semua Peruntukan</option>
+                                    </select>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="filter_atas_nama" class="form-label">Atas Nama</label>
                                     <select class="form-select" id="filter_atas_nama">
                                         <option value="">Semua Atas Nama</option>
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="filter_tgl_terbit" class="form-label">Tanggal Terbit</label>
                                     <div class="input-group">
@@ -224,6 +228,7 @@
                                             placeholder="Sampai">
                                     </div>
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="filter_tgl_berakhir" class="form-label">Tanggal Berakhir</label>
                                     <div class="input-group">
@@ -234,23 +239,9 @@
                                             placeholder="Sampai">
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
+
                                 <div class="mb-3">
-                                    <label for="filter_status" class="form-label">Status Dokumen</label>
-                                    <select class="form-select" id="filter_status">
-                                        <option value="">Semua Status</option>
-                                        <option value="aktif">Aktif</option>
-                                        <option value="hampir_kedaluwarsa">Hampir Kedaluwarsa (30 hari)</option>
-                                        <option value="kedaluwarsa">Kedaluwarsa</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="filter_sts_berlaku" class="form-label">Status Berlaku</label>
+                                    <label for="filter_sts_berlaku" class="form-label">Status Dokumen</label>
                                     <select class="form-select" id="filter_sts_berlaku">
                                         <option value="">Semua</option>
                                         <option value="Berlaku">Berlaku</option>
@@ -424,6 +415,13 @@
                 --bs-table-striped-bg: none !important;
             }
 
+            .dokLegalPage table#dokLegalTable tbody tr.highlight-gray {
+                background-color: #cccccc !important;
+                color: rgb(0, 0, 0) !important;
+                --bs-table-accent-bg: none !important;
+                --bs-table-striped-bg: none !important;
+            }
+
             /* Ensure hover states don't override highlight colors */
             .dokLegalPage table#dokLegalTable tbody tr.highlight-red:hover {
                 background-color: #ff3333 !important;
@@ -435,6 +433,10 @@
 
             .dokLegalPage table#dokLegalTable tbody tr.highlight-orange:hover {
                 background-color: #00e013 !important;
+            }
+
+            .dokLegalPage table#dokLegalTable tbody tr.highlight-gray:hover {
+                background-color: #dddddd !important;
             }
 
             /* Override Bootstrap's striped table styles */
@@ -453,10 +455,16 @@
                 background-color: #ffaa00 !important;
             }
 
+            .dokLegalPage .table-striped>tbody>tr:nth-of-type(odd).highlight-gray,
+            .dokLegalPage .table-striped>tbody>tr:nth-of-type(even).highlight-gray {
+                background-color: #cccccc !important;
+            }
+
             /* Memastikan kolom tabel tetap terlihat meskipun dalam baris yang di-highlight */
             .dokLegalPage table#dokLegalTable tbody tr.highlight-red>td,
             .dokLegalPage table#dokLegalTable tbody tr.highlight-yellow>td,
-            .dokLegalPage table#dokLegalTable tbody tr.highlight-orange>td {
+            .dokLegalPage table#dokLegalTable tbody tr.highlight-orange>td,
+            .dokLegalPage table#dokLegalTable tbody tr.highlight-gray>td {
                 background-color: inherit !important;
             }
 
@@ -740,13 +748,38 @@
                             // Force style search input box
                             $('.dataTables_filter input').addClass('form-control');
 
-                            // Perbarui masa peringatan dan terapkan highlighting
-                            updateMasaPeringatanText();
-                            applyOriginalHighlighting();
+                            // Dapatkan statistik awal dari server
+                            updateDocumentStats();
                         }
                     });
 
-                    // Fungsi untuk memperbarui teks masa peringatan tanpa mengubah highlighting
+                    // Fungsi untuk mendapatkan statistik dokumen dari server
+                    function updateDocumentStats() {
+                        $.ajax({
+                            url: '/dokLegal/stats', // Pastikan URL ini sesuai dengan route Anda
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(data) {
+                                // Update counter badges dengan data dari server
+                                $('#expiredDocsCount').text(data.expired);
+                                $('#warningDocsCount').text(data.warning);
+
+                                // Show/hide badges
+                                $('#expiredDocsBadge').toggle(data.expired > 0);
+                                $('#warningDocsBadge').toggle(data.warning > 0);
+
+                                // Tetap gunakan highlighting lokal untuk baris yang terlihat
+                                applyVisibleRowHighlighting();
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error fetching document stats:", error);
+                                // Fallback ke perhitungan lokal jika server error
+                                applyVisibleRowHighlighting();
+                            }
+                        });
+                    }
+
+                    // Fungsi untuk memperbarui teks masa peringatan
                     function updateMasaPeringatanText() {
                         const today = moment();
 
@@ -785,20 +818,24 @@
                         });
                     }
 
-                    // Fungsi terpadu untuk menerapkan highlighting berdasarkan aturan bisnis yang benar
-                    function applyOriginalHighlighting() {
-                        // Reset counters
-                        let expiredCount = 0;
-                        let warningCount = 0;
+                    // Fungsi untuk highlighting baris yang terlihat saja
+                    function applyVisibleRowHighlighting() {
+                        // Reset semua highlight di baris yang terlihat
+                        $('#dokLegalTable tbody tr').removeClass(
+                            'highlight-red highlight-yellow highlight-orange highlight-gray');
 
-                        // Apply highlighting based on both dates
+                        // Apply highlighting untuk baris yang terlihat saja
                         $('#dokLegalTable tbody tr').each(function() {
-                            // Reset all highlight classes first
-                            $(this).removeClass('highlight-red highlight-yellow highlight-orange');
-
                             const row = $(this);
 
-                            // Check Tanggal Pengingat first (higher priority)
+                            // Check for "Tidak Berlaku" status first (highest priority)
+                            const statusText = row.find('td:eq(11)').text().trim();
+                            if (statusText.includes("Tidak Berlaku")) {
+                                row.addClass('highlight-gray');
+                                return; // Stop here - gray has highest priority
+                            }
+
+                            // Logic untuk TglPengingat (prioritas berikutnya)
                             const tglPengingatStr = row.data('tgl-peringatan');
                             if (tglPengingatStr) {
                                 const tglPengingat = moment(tglPengingatStr);
@@ -808,21 +845,17 @@
                                 if (diffDays < 0 || diffDays === 0) {
                                     // Tanggal pengingat sudah lewat atau hari ini
                                     row.addClass('highlight-red');
-                                    expiredCount++;
                                     return; // Stop here - red has priority
                                 } else if (diffDays <= 7) {
                                     row.addClass('highlight-yellow');
-                                    warningCount++;
                                     return; // Stop here - yellow has next priority
                                 } else if (diffDays <= 30) {
                                     row.addClass('highlight-orange');
-                                    warningCount++;
                                     return; // Stop here
                                 }
-                                // Tidak memberikan warna untuk pengingat > 30 hari
                             }
 
-                            // If not highlighted by Tanggal Pengingat, check Tanggal Berakhir
+                            // Logic untuk TglBerakhir
                             const tglBerakhir = row.find('td:eq(8)').text();
                             if (tglBerakhir !== '-') {
                                 const berakhirDate = moment(tglBerakhir, 'DD/MM/YYYY');
@@ -830,33 +863,11 @@
 
                                 if (berakhirDate.isBefore(today)) {
                                     row.addClass('highlight-red');
-                                    expiredCount++;
                                 } else if (berakhirDate.isBefore(moment().add(30, 'days'))) {
-                                    // Hanya berikan warna orange untuk dokumen yang akan berakhir dalam 30 hari
                                     row.addClass('highlight-orange');
-                                    warningCount++;
                                 }
-                                // Tidak memberikan warna lain untuk dokumen yang berakhirnya > 30 hari
                             }
                         });
-
-                        // Update the badge counters
-                        $('#expiredDocsCount').text(expiredCount);
-                        $('#warningDocsCount').text(warningCount);
-
-                        // Show/hide badges
-                        $('#expiredDocsBadge').toggle(expiredCount > 0);
-                        $('#warningDocsBadge').toggle(warningCount > 0);
-                    }
-
-                    // Fungsi untuk reset dan menerapkan highlight dengan benar
-                    function resetAndApplyHighlighting() {
-                        // Clear DataTable search and column filters but preserve the highlighting
-                        table.search('').columns().search('').draw();
-
-                        // Karena draw() pada DataTable bisa mengubah DOM, kita perlu mengaplikasikan ulang
-                        // highlighting dengan benar berdasarkan data asli
-                        applyOriginalHighlighting();
                     }
 
                     // Event untuk filter dan export button
@@ -890,9 +901,8 @@
                         // Highlight filter button jika ada filter aktif
                         highlightFilterButton();
 
-                        // Penting: Pastikan warna highlight dipertahankan setelah filter
-                        // Kita perlu memanggil ini setelah table.draw() karena draw() mengubah DOM
-                        applyOriginalHighlighting();
+                        // Refresh statistik setelah filter diterapkan
+                        updateDocumentStats();
                     });
 
                     // Modify the Reset Filter event handler
@@ -903,14 +913,20 @@
                         // Remove active class from filter button
                         $('#filterButton').removeClass('filter-active');
 
-                        // Apply proper highlighting while preserving original colors
-                        resetAndApplyHighlighting();
+                        // Reset table filters
+                        table.search('').columns().search('').draw();
+
+                        // Refresh statistik setelah filter direset
+                        updateDocumentStats();
                     });
 
-                    // Event listener untuk table draw event - untuk mempertahankan warna highlight setelah filter/paging/search
-                    table.on('draw', function() {
-                        // Pertahankan warna highlight asli setelah operasi tabel
-                        applyOriginalHighlighting();
+                    // Event listener untuk table draw event
+                    table.on('draw.dt', function() {
+                        // Update text untuk baris yang terlihat
+                        updateMasaPeringatanText();
+
+                        // Update highlight untuk baris yang terlihat
+                        applyVisibleRowHighlighting();
                     });
 
                     // Highlight filter button jika ada filter aktif
@@ -963,7 +979,7 @@
                         $('#dokNoRegToDelete').text(name);
 
                         // Set form action URL
-                        var deleteUrl = "{{ url('dokLegal') }}/" + id;
+                        var deleteUrl = "/dokLegal/" + id;
                         $('#deleteForm').attr('action', deleteUrl);
 
                         // Show the delete confirmation modal
@@ -974,33 +990,33 @@
                     $('<style>')
                         .prop('type', 'text/css')
                         .html(`
-                        /* Ensure SweetAlert appears above all other elements */
-                        .swal2-container {
-                            z-index: 2060 !important; /* Higher than Bootstrap modal backdrop (2050) */
-                        }
+        /* Ensure SweetAlert appears above all other elements */
+        .swal2-container {
+            z-index: 2060 !important; /* Higher than Bootstrap modal backdrop (2050) */
+        }
 
-                        /* Prevent Bootstrap modals from interfering */
-                        .modal-backdrop {
-                            z-index: 1050 !important;
-                        }
+        /* Prevent Bootstrap modals from interfering */
+        .modal-backdrop {
+            z-index: 1050 !important;
+        }
 
-                        .modal {
-                            z-index: 1055 !important;
-                        }
+        .modal {
+            z-index: 1055 !important;
+        }
 
-                        /* Fix for Windows browsers */
-                        body.swal2-shown {
-                            overflow-y: hidden !important;
-                            padding-right: 0 !important;
-                        }
+        /* Fix for Windows browsers */
+        body.swal2-shown {
+            overflow-y: hidden !important;
+            padding-right: 0 !important;
+        }
 
-                        /* Ensure SweetAlert is visible on mobile devices */
-                        @media (max-width: 500px) {
-                            .swal2-popup {
-                                width: 90% !important;
-                            }
-                        }
-                    `)
+        /* Ensure SweetAlert is visible on mobile devices */
+        @media (max-width: 500px) {
+            .swal2-popup {
+                width: 90% !important;
+            }
+        }
+    `)
                         .appendTo('head');
 
                     // Tambahkan efek klik pada baris tabel untuk menuju halaman detail
@@ -1037,6 +1053,10 @@
                     setTimeout(function() {
                         $(".alert").fadeOut("slow");
                     }, 5000);
+
+                    // Inisialisasi awal
+                    updateMasaPeringatanText();
+                    updateDocumentStats();
                 });
             </script>
         @endpush
