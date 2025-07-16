@@ -47,7 +47,7 @@
                                 <i class="fas fa-exclamation-circle me-1"></i> Dokumen Expired : <span
                                     id="expiredDocsCount">0</span>
                             </span>
-                            <span id="warningDocsBadge" class="badge bg-warning text-dark me-2" style="font-size: 0.9rem;">
+                            <span id="warningDocsBadge" class="badge text-dark me-2" style="font-size: 0.9rem; background-color:#ffff66">
                                 <i class="fas fa-exclamation-triangle me-1"></i>Dokumen Akan Expired : <span
                                     id="warningDocsCount">0</span>
                             </span>
@@ -416,7 +416,7 @@
             }
 
             .dokLegalPage table#dokLegalTable tbody tr.highlight-orange {
-                background-color: #ffaa00 !important;
+                background-color: #00e013 !important;
                 color: rgb(0, 0, 0) !important;
                 --bs-table-accent-bg: none !important;
                 --bs-table-striped-bg: none !important;
@@ -432,7 +432,7 @@
             }
 
             .dokLegalPage table#dokLegalTable tbody tr.highlight-orange:hover {
-                background-color: #ffbb33 !important;
+                background-color: #00e013 !important;
             }
 
             /* Override Bootstrap's striped table styles */
