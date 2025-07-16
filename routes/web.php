@@ -178,6 +178,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/jenis-dok/{jenisDok}', [JenisDokController::class, 'destroy'])->name('jenis-dok.destroy');
     });
 
+    Route::get('/dokLegal/stats', [App\Http\Controllers\DokLegalController::class, 'getDocumentStats'])->name('dokLegal.getDocumentStats');
+
     // API untuk dashboard stats - tidak menggunakan middleware untuk memudahkan akses
     Route::get('/api/dokumen-by-status', [DokLegalController::class, 'getDokumenByStatus']);
     Route::get('/api/dokumen-terbaru', [DokLegalController::class, 'getDokumenTerbaru']);
