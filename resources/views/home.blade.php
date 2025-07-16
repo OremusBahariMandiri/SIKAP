@@ -14,8 +14,6 @@
                                         <div class="current-date fs-5 text-muted"></div>
                                         <div class="current-time display-4 fw-bold text-primary"></div>
                                     </div>
-
-
                                     <h2 class="fs-1 fw-light mb-0 text-gradient" id="sikap">SIKAP</h2>
 
                                     <p class="lead mt-2 text-strong">

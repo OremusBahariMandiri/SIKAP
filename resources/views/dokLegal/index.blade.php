@@ -47,7 +47,8 @@
                                 <i class="fas fa-exclamation-circle me-1"></i> Dokumen Expired : <span
                                     id="expiredDocsCount">0</span>
                             </span>
-                            <span id="warningDocsBadge" class="badge text-dark me-2" style="font-size: 0.9rem; background-color:#ffff66">
+                            <span id="warningDocsBadge" class="badge text-dark me-2"
+                                style="font-size: 0.9rem; background-color:#ffff66">
                                 <i class="fas fa-exclamation-triangle me-1"></i>Dokumen Akan Expired : <span
                                     id="warningDocsCount">0</span>
                             </span>
@@ -93,7 +94,8 @@
                                             <td class="sisa-peringatan-col">{{ $dokLegal->MasaPengingat }}</td>
                                             <td class="text-center">
                                                 @if ($dokLegal->StsBerlakuDok == 'Berlaku')
-                                                    <span class="badge bg-success">{{ $dokLegal->StsBerlakuDok }}</span>
+                                                    <span class="badge"
+                                                        style="background-color: blue">{{ $dokLegal->StsBerlakuDok }}</span>
                                                 @else
                                                     <span
                                                         class="badge bg-warning text-dark">{{ $dokLegal->StsBerlakuDok }}</span>
@@ -105,8 +107,8 @@
                                                     {{-- Detail button --}}
                                                     @if ($isAdmin || $hasViewPermission)
                                                         <a href="{{ route('dokLegal.show', $dokLegal) }}"
-                                                            class="btn btn-sm btn-info text-white" data-bs-toggle="tooltip"
-                                                            title="Detail">
+                                                            class="btn btn-sm text-white" data-bs-toggle="tooltip"
+                                                            title="Detail" style="background-color: #4a90e2;">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
                                                     @endif
@@ -114,27 +116,27 @@
                                                     {{-- Edit button --}}
                                                     @if ($isAdmin || $hasEditPermission)
                                                         <a href="{{ route('dokLegal.edit', $dokLegal) }}"
-                                                            class="btn btn-sm btn-secondary" data-bs-toggle="tooltip"
-                                                            title="Edit">
-                                                            <i class="fas fa-edit text-white"></i>
+                                                            class="btn btn-sm text-white" data-bs-toggle="tooltip"
+                                                            title="Edit" style="background-color: #e67e22;">
+                                                            <i class="fas fa-edit"></i>
                                                         </a>
                                                     @endif
 
                                                     {{-- Download button - tampilkan hanya jika memiliki izin download dan file ada --}}
                                                     @if (($isAdmin || $hasDownloadPermission) && $dokLegal->FileDok)
                                                         <a href="{{ route('dokLegal.download', $dokLegal) }}"
-                                                            class="btn btn-sm btn-success" data-bs-toggle="tooltip"
-                                                            title="Download">
+                                                            class="btn btn-sm text-white" data-bs-toggle="tooltip"
+                                                            title="Download" style="background-color: #2c3e50;">
                                                             <i class="fas fa-download"></i>
                                                         </a>
                                                     @endif
 
                                                     {{-- Delete button --}}
                                                     @if ($isAdmin || $hasDeletePermission)
-                                                        <button type="button" class="btn btn-sm btn-danger delete-confirm"
+                                                        <button type="button" class="btn btn-sm delete-confirm text-white"
                                                             data-id="{{ $dokLegal->id }}"
                                                             data-name="{{ $dokLegal->NoRegDok }}" data-bs-toggle="tooltip"
-                                                            title="Hapus">
+                                                            title="Hapus" style="background-color: #95a5a6;">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     @endif
