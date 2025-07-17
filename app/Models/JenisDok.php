@@ -26,6 +26,8 @@ class JenisDok extends Model
         'IdKode',
         'JenisDok',
         'idKategoriDok',
+        'created_by',
+        'updated_by',
     ];
 
     /**

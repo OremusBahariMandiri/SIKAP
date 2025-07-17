@@ -32,6 +32,8 @@ class Perusahaan extends Model
         'TglBerdiri',
         'TelpPrsh2',
         'EmailPrsh2',
+        'created_by',
+        'updated_by',
     ];
 
     /**

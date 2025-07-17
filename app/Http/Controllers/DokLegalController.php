@@ -193,6 +193,9 @@ class DokLegalController extends Controller
         $validated['KategoriDok'] = $kategori->KategoriDok;
         $validated['JenisDok'] = $jenis->JenisDok;
 
+        // Tambahkan informasi user yang membuat dan mengupdate data
+        $validated['created_by'] = auth()->user()->id; // Use the actual 'id' property
+
         DokLegal::create($validated);
 
         Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Ditambahkan.');
@@ -338,6 +341,9 @@ class DokLegalController extends Controller
         $validated['DokPerusahaan'] = $perusahaan->NamaPrsh;
         $validated['KategoriDok'] = $kategori->KategoriDok;
         $validated['JenisDok'] = $jenis->JenisDok;
+
+        // Update informasi user yang mengupdate data
+        $validated['updated_by'] = auth()->user()->id;
 
         $dokLegal->update($validated);
 

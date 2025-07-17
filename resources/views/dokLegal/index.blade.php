@@ -16,7 +16,6 @@
                                 <i class="fas fa-download me-1"></i> Export
                             </button>
 
-                            {{-- Tombol Tambah - Tampilkan jika admin atau memiliki izin tambah --}}
                             @if ($isAdmin || $hasCreatePermission)
                                 <a href="{{ route('dokLegal.create') }}" class="btn btn-light">
                                     <i class="fas fa-plus-circle me-1"></i> Tambah

@@ -46,7 +46,11 @@ class KategoriDokController extends Controller
                 ->withInput();
         }
 
-        KategoriDok::create($request->all());
+        // Prepare data with created_by and updated_by
+        $data = $request->all();
+        $data['created_by'] = auth()->user()->id;
+
+        KategoriDok::create($data);
 
         Alert::success('Berhasil', 'Data Kategori Dokumen Berhasil Ditambahkan.');
         return redirect()->route('kategori-dok.index');
@@ -89,8 +93,11 @@ class KategoriDokController extends Controller
                 ->withInput();
         }
 
-        $kategoriDok->update($request->all());
+        // Prepare data with updated_by
+        $data = $request->all();
+        $data['updated_by'] = auth()->user()->id;
 
+        $kategoriDok->update($data);
 
         Alert::success('Berhasil', 'Data Kategori Dokumen Berhasil Diperbarui.');
         return redirect()->route('kategori-dok.index');
