@@ -25,6 +25,8 @@ class KategoriDok extends Model
     protected $fillable = [
         'IdKode',
         'KategoriDok',
+        'created_by',
+        'updated_by',
     ];
 
     /**

@@ -52,7 +52,11 @@ class JenisDokController extends Controller
                 ->withInput();
         }
 
-        JenisDok::create($request->all());
+        // Prepare data with created_by and updated_by
+        $data = $request->all();
+        $data['created_by'] = auth()->user()->id;
+
+        JenisDok::create($data);
         Alert::success('Berhasil', 'Data Jenis Dokumen Berhasil Ditambahkan.');
         return redirect()->route('jenis-dok.index');
     }
@@ -100,7 +104,11 @@ class JenisDokController extends Controller
                 ->withInput();
         }
 
-        $jenisDok->update($request->all());
+        // Prepare data with updated_by
+        $data = $request->all();
+        $data['updated_by'] = auth()->user()->id;
+
+        $jenisDok->update($data);
         Alert::success('Berhasil', 'Data Jenis Dokumen Berhasil Diperbarui.');
         return redirect()->route('jenis-dok.index');
     }

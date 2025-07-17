@@ -12,7 +12,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     // Jika tabel Anda memiliki nama khusus
-    protected $table = 'A01DmUser';
+    protected $table = 'a01dmuser';
 
     // Jika primary key bukan 'id'
     protected $primaryKey = 'id';
@@ -31,6 +31,8 @@ class User extends Authenticatable
         'WilkerKry',
         'PasswordKry',
         'is_admin',
+        'created_by',
+        'updated_by',
     ];
 
     /**
@@ -172,5 +174,5 @@ class User extends Authenticatable
                 return false;
         }
     }
-    
+
 }

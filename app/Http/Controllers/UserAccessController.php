@@ -76,6 +76,8 @@ class UserAccessController extends Controller
                 'DownloadAcs' => isset($accessData['DownloadAcs']),
                 'DetailAcs' => isset($accessData['DetailAcs']),
                 'MonitoringAcs' => isset($accessData['MonitoringAcs']),
+                'created_by' => auth()->user()->id,
+                'updated_by' => auth()->user()->id,
             ]);
 
             $createdPermissions[] = $permission->toArray();
@@ -90,6 +92,9 @@ class UserAccessController extends Controller
         } else {
             $user->is_admin = false;
         }
+
+        // Set updated_by for user table
+        $user->updated_by = auth()->user()->id;
 
         // Save changes
         $saveResult = $user->save();

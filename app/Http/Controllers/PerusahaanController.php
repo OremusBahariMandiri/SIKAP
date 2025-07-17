@@ -51,7 +51,11 @@ class PerusahaanController extends Controller
                 ->withInput();
         }
 
-        Perusahaan::create($request->all());
+        // Prepare data with created_by and updated_by
+        $data = $request->all();
+        $data['created_by'] = auth()->user()->id;
+
+        Perusahaan::create($data);
 
         Alert::success('Berhasil', 'Data Perusahaan Berhasil Ditambahkan.');
         return redirect()->route('perusahaan.index');
@@ -101,7 +105,11 @@ class PerusahaanController extends Controller
                 ->withInput();
         }
 
-        $perusahaan->update($request->all());
+        // Prepare data with updated_by
+        $data = $request->all();
+        $data['updated_by'] = auth()->user()->id;
+
+        $perusahaan->update($data);
         Alert::success('Berhasil', 'Data Perusahaan Berhasil Diperbarui.');
         return redirect()->route('perusahaan.index');
     }

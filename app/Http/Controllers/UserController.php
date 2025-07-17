@@ -85,6 +85,7 @@ class UserController extends Controller
         $user->WilkerKry = $request->WilkerKry;
         $user->PasswordKry = Hash::make($request->PasswordKry);
         $user->is_admin = $request->has('is_admin');
+        $user['created_by'] = auth()->user()->id; // Use the actual 'id' property
         $user->save();
 
         Alert::success('Berhasil', 'Data Pengguna Berhasil Ditambahkan.');
@@ -172,6 +173,7 @@ class UserController extends Controller
         if ($request->filled('PasswordKry')) {
             $user->PasswordKry = Hash::make($request->PasswordKry);
         }
+        $user['updated_by'] = auth()->user()->id;
 
         $user->save();
 

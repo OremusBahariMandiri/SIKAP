@@ -32,6 +32,8 @@ class DokLegal extends Model
         'MasaPengingat',
         'FileDok',
         'StsBerlakuDok',
+        'created_by',
+        'updated_by',
     ];
 
     // Definisikan nilai default untuk FileDok
@@ -131,5 +133,5 @@ class DokLegal extends Model
             $this->attributes['MasaPengingat'] = '-';
         }
     }
-    
+
 }

@@ -19,7 +19,9 @@ class UserAccess extends Model
         'HapusAcs',
         'DownloadAcs',
         'DetailAcs',
-        'MonitoringAcs'
+        'MonitoringAcs',
+        'created_by',
+        'updated_by',
     ];
 
     /**
