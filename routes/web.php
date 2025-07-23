@@ -193,6 +193,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/settings/update-password', [App\Http\Controllers\SettingsController::class, 'updatePassword'])->name('settings.update-password');
     // Route untuk debugging
     Route::get('/debug/users/create', [UserController::class, 'create'])->name('debug.users.create');
+    // Tambahkan route berikut di routes/web.php
+    Route::post('/dokLegal/export-excel', [App\Http\Controllers\DokLegalController::class, 'exportExcel'])->name('dokLegal.export-excel');
 });
 
 // Auth routes (login, logout, reset password)
