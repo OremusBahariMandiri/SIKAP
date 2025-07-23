@@ -89,16 +89,20 @@
                                                     value="{{ old('KategoriDok', $dokLegal->KategoriDok) }}">
                                             </div>
 
+                                            <!-- Form jenis_id dropdown with data attributes for kategori filtering -->
                                             <div class="form-group mb-3">
                                                 <label for="jenis_id" class="form-label fw-bold">Jenis Dokumen <span
                                                         class="text-danger">*</span></label>
                                                 <select class="form-select @error('jenis_id') is-invalid @enderror"
-                                                    id="jenis_id" name="jenis_id" required>
+                                                    id="jenis_id" name="jenis_id" required
+                                                    data-old-value="{{ old('jenis_id', $dokLegal->jenis_id) }}">
                                                     <option value="">-- Pilih Jenis --</option>
-                                                    @foreach ($jenisDoks as $id => $jenis)
+                                                    @foreach ($formattedJenisDoks as $id => $jenis)
                                                         <option value="{{ $id }}"
+                                                            data-kategori-id="{{ $jenis['kategori_id'] }}"
                                                             {{ old('jenis_id', $dokLegal->jenis_id) == $id ? 'selected' : '' }}>
-                                                            {{ $jenis }}</option>
+                                                            {{ $jenis['name'] }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                                 @error('jenis_id')
@@ -394,6 +398,65 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Store all available jenis dokumen options
+            const jenisDokSelect = document.getElementById('jenis_id');
+            const allJenisDokOptions = Array.from(jenisDokSelect.options);
+
+            // Current selected jenis_id to preserve during filtering
+            const currentJenisId = document.getElementById('jenis_id').value;
+
+            // Function to filter jenis dokumen based on selected kategori
+            function filterJenisDokumen() {
+                const kategoriId = document.getElementById('kategori_id').value;
+
+                // Reset jenis_id dropdown
+                jenisDokSelect.innerHTML = '';
+
+                // Add default empty option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.text = '-- Pilih Jenis --';
+                jenisDokSelect.add(defaultOption);
+
+                // If no kategori selected, just show the default option
+                if (!kategoriId) {
+                    return;
+                }
+
+                // Find and add all jenis options that match the selected kategori
+                allJenisDokOptions.forEach(option => {
+                    // Skip the default empty option
+                    if (option.value === '') return;
+
+                    // Get the data attribute from the option that identifies its kategori
+                    const optionKategoriId = option.getAttribute('data-kategori-id');
+
+                    // Add the option if it belongs to the selected kategori
+                    if (optionKategoriId === kategoriId) {
+                        const newOption = option.cloneNode(true);
+                        jenisDokSelect.add(newOption);
+                    }
+                });
+
+                // Restore the previously selected value if it belongs to this kategori
+                if (currentJenisId) {
+                    // Find if the current jenis belongs to the selected kategori
+                    const currentJenisOption = allJenisDokOptions.find(opt =>
+                        opt.value === currentJenisId &&
+                        opt.getAttribute('data-kategori-id') === kategoriId
+                    );
+
+                    if (currentJenisOption) {
+                        jenisDokSelect.value = currentJenisId;
+                        // Update the hidden field
+                        document.getElementById('JenisDok').value = currentJenisOption.text;
+                    } else {
+                        // If current jenis doesn't belong to the new kategori, clear it
+                        document.getElementById('JenisDok').value = '';
+                    }
+                }
+            }
+
             // Set hidden fields value from select dropdown
             document.getElementById('perusahaan_id').addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -403,6 +466,9 @@
             document.getElementById('kategori_id').addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 document.getElementById('KategoriDok').value = selectedOption.text;
+
+                // Filter jenis dokumen when kategori changes
+                filterJenisDokumen();
             });
 
             document.getElementById('jenis_id').addEventListener('change', function() {
@@ -421,6 +487,9 @@
                 const kategoriSelect = document.getElementById('kategori_id');
                 document.getElementById('KategoriDok').value = kategoriSelect.options[kategoriSelect.selectedIndex]
                     .text;
+
+                // Also trigger the filter for jenis dokumen
+                filterJenisDokumen();
             }
 
             if (document.getElementById('jenis_id').value) {
@@ -478,7 +547,6 @@
             }
 
             // Fungsi untuk menghitung dan menampilkan masa pengingat
-            // Dihitung dari tanggal pengingat ke tanggal berakhir
             function hitungMasaPengingat() {
                 const tglPengingat = document.getElementById('TglPengingat').value;
                 const tglBerakhir = document.getElementById('TglBerakhirDok').value;
@@ -502,7 +570,7 @@
                         months--;
                         // Tambahkan hari dari bulan sebelumnya
                         const lastDayOfMonth = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), 0)
-                        .getDate();
+                            .getDate();
                         days += lastDayOfMonth;
                     }
 

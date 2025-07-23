@@ -81,9 +81,20 @@ class DokLegalController extends Controller
         // Data master untuk dropdown
         $perusahaans = Perusahaan::orderBy('NamaPrsh')->pluck('NamaPrsh', 'id');
         $kategoris = KategoriDok::orderBy('KategoriDok')->pluck('KategoriDok', 'id');
-        $jenisDoks = JenisDok::orderBy('JenisDok')->pluck('JenisDok', 'id');
 
-        return view('dokLegal.create', compact('idKode', 'perusahaans', 'kategoris', 'jenisDoks'));
+        // Get jenis dokumen with their kategori relationship
+        $jenisDoks = JenisDok::with('kategori')->orderBy('JenisDok')->get();
+
+        // Format jenis dokumen for the view
+        $formattedJenisDoks = [];
+        foreach ($jenisDoks as $jenis) {
+            $formattedJenisDoks[$jenis->id] = [
+                'name' => $jenis->JenisDok,
+                'kategori_id' => $jenis->idKategoriDok
+            ];
+        }
+
+        return view('dokLegal.create', compact('idKode', 'perusahaans', 'kategoris', 'formattedJenisDoks'));
     }
 
     /**
@@ -221,9 +232,20 @@ class DokLegalController extends Controller
         // Data master untuk dropdown
         $perusahaans = Perusahaan::orderBy('NamaPrsh')->pluck('NamaPrsh', 'id');
         $kategoris = KategoriDok::orderBy('KategoriDok')->pluck('KategoriDok', 'id');
-        $jenisDoks = JenisDok::orderBy('JenisDok')->pluck('JenisDok', 'id');
 
-        return view('dokLegal.edit', compact('dokLegal', 'perusahaans', 'kategoris', 'jenisDoks'));
+        // Get jenis dokumen with their kategori relationship
+        $jenisDoks = JenisDok::with('kategori')->orderBy('JenisDok')->get();
+
+        // Format jenis dokumen for the view
+        $formattedJenisDoks = [];
+        foreach ($jenisDoks as $jenis) {
+            $formattedJenisDoks[$jenis->id] = [
+                'name' => $jenis->JenisDok,
+                'kategori_id' => $jenis->idKategoriDok
+            ];
+        }
+
+        return view('dokLegal.edit', compact('dokLegal', 'perusahaans', 'kategoris', 'formattedJenisDoks'));
     }
 
     /**

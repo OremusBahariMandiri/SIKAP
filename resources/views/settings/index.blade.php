@@ -25,7 +25,7 @@
                         @endif
 
                         <div class="card border-primmary mb-3">
-                            <div class="card-header bg-secondary bg-opacity-25 text-dark">
+                            <div class="card-header bg-primary bg-opacity-25 text-white">
                                 <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Informasi Akun</h5>
                             </div>
                             <div class="card-body">

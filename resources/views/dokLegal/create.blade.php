@@ -88,16 +88,20 @@
                                                     value="{{ old('KategoriDok') }}">
                                             </div>
 
+                                            <!-- Form jenis_id dropdown with data attributes for kategori filtering -->
                                             <div class="form-group mb-3">
                                                 <label for="jenis_id" class="form-label fw-bold">Jenis Dokumen <span
                                                         class="text-danger">*</span></label>
                                                 <select class="form-select @error('jenis_id') is-invalid @enderror"
-                                                    id="jenis_id" name="jenis_id" required>
+                                                    id="jenis_id" name="jenis_id" required
+                                                    data-old-value="{{ old('jenis_id') }}">
                                                     <option value="">-- Pilih Jenis --</option>
-                                                    @foreach ($jenisDoks as $id => $jenis)
+                                                    @foreach ($formattedJenisDoks as $id => $jenis)
                                                         <option value="{{ $id }}"
+                                                            data-kategori-id="{{ $jenis['kategori_id'] }}"
                                                             {{ old('jenis_id') == $id ? 'selected' : '' }}>
-                                                            {{ $jenis }}</option>
+                                                            {{ $jenis['name'] }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                                 @error('jenis_id')
@@ -379,6 +383,47 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Store all available jenis dokumen options
+            const jenisDokSelect = document.getElementById('jenis_id');
+            const allJenisDokOptions = Array.from(jenisDokSelect.options);
+
+            // Function to filter jenis dokumen based on selected kategori
+            function filterJenisDokumen() {
+                const kategoriId = document.getElementById('kategori_id').value;
+
+                // Reset jenis_id dropdown
+                jenisDokSelect.innerHTML = '';
+
+                // Add default empty option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.text = '-- Pilih Jenis --';
+                jenisDokSelect.add(defaultOption);
+
+                // If no kategori selected, just show the default option
+                if (!kategoriId) {
+                    return;
+                }
+
+                // Find and add all jenis options that match the selected kategori
+                allJenisDokOptions.forEach(option => {
+                    // Skip the default empty option
+                    if (option.value === '') return;
+
+                    // Get the data attribute from the option that identifies its kategori
+                    const optionKategoriId = option.getAttribute('data-kategori-id');
+
+                    // Add the option if it belongs to the selected kategori
+                    if (optionKategoriId === kategoriId) {
+                        const newOption = option.cloneNode(true);
+                        jenisDokSelect.add(newOption);
+                    }
+                });
+
+                // Clear JenisDok hidden field when kategori changes
+                document.getElementById('JenisDok').value = '';
+            }
+
             // Set hidden fields value from select dropdown
             document.getElementById('perusahaan_id').addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -388,6 +433,9 @@
             document.getElementById('kategori_id').addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 document.getElementById('KategoriDok').value = selectedOption.text;
+
+                // Filter jenis dokumen when kategori changes
+                filterJenisDokumen();
             });
 
             document.getElementById('jenis_id').addEventListener('change', function() {
@@ -406,6 +454,18 @@
                 const kategoriSelect = document.getElementById('kategori_id');
                 document.getElementById('KategoriDok').value = kategoriSelect.options[kategoriSelect.selectedIndex]
                     .text;
+
+                // Also trigger the filter for jenis dokumen
+                filterJenisDokumen();
+
+                // If there's a previously selected jenis_id value, try to restore it
+                const savedJenisId = document.getElementById('jenis_id').getAttribute('data-old-value');
+                if (savedJenisId) {
+                    document.getElementById('jenis_id').value = savedJenisId;
+                    // Trigger change event to update the hidden field
+                    const event = new Event('change');
+                    document.getElementById('jenis_id').dispatchEvent(event);
+                }
             }
 
             if (document.getElementById('jenis_id').value) {
@@ -487,7 +547,7 @@
                         months--;
                         // Tambahkan hari dari bulan sebelumnya
                         const lastDayOfMonth = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), 0)
-                        .getDate();
+                            .getDate();
                         days += lastDayOfMonth;
                     }
 
