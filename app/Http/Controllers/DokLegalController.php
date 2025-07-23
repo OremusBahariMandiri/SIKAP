@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DokLegalExport;
 use App\Models\DokLegal;
 use App\Models\Perusahaan;
 use App\Models\KategoriDok;
@@ -15,6 +16,7 @@ use Illuminate\Validation\Rule;
 use DateInterval;
 use DatePeriod;
 use DateTime;
+use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class DokLegalController extends Controller
@@ -611,5 +613,85 @@ class DokLegalController extends Controller
             'expired' => $expiredCount,
             'warning' => $warningCount
         ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        // Ambil parameter filter
+        $filters = [
+            'noreg' => $request->filter_noreg,
+            'perusahaan' => $request->filter_perusahaan,
+            'kategori' => $request->filter_kategori,
+            'jenis' => $request->filter_jenis,
+            'peruntukan' => $request->filter_peruntukan,
+            'atas_nama' => $request->filter_atas_nama,
+            'tgl_terbit_from' => $request->filter_tgl_terbit_from,
+            'tgl_terbit_to' => $request->filter_tgl_terbit_to,
+            'tgl_berakhir_from' => $request->filter_tgl_berakhir_from,
+            'tgl_berakhir_to' => $request->filter_tgl_berakhir_to,
+            'sts_berlaku' => $request->filter_sts_berlaku,
+        ];
+
+        // Query data berdasarkan filter
+        $query = DokLegal::query();
+
+        // Filter No Registrasi
+        if ($request->filled('filter_noreg')) {
+            $query->where('NoRegDok', 'like', '%' . $request->filter_noreg . '%');
+        }
+
+        // Filter Perusahaan
+        if ($request->filled('filter_perusahaan')) {
+            $query->where('DokPerusahaan', $request->filter_perusahaan);
+        }
+
+        // Filter Kategori
+        if ($request->filled('filter_kategori')) {
+            $query->where('KategoriDok', $request->filter_kategori);
+        }
+
+        // Filter Jenis Dokumen
+        if ($request->filled('filter_jenis')) {
+            $query->where('JenisDok', $request->filter_jenis);
+        }
+
+        // Filter Peruntukan
+        if ($request->filled('filter_peruntukan')) {
+            $query->where('PeruntukanDok', $request->filter_peruntukan);
+        }
+
+        // Filter Atas Nama
+        if ($request->filled('filter_atas_nama')) {
+            $query->where('DokAtasNama', $request->filter_atas_nama);
+        }
+
+        // Filter Tanggal Terbit
+        if ($request->filled('filter_tgl_terbit_from')) {
+            $query->where('TglTerbitDok', '>=', $request->filter_tgl_terbit_from);
+        }
+        if ($request->filled('filter_tgl_terbit_to')) {
+            $query->where('TglTerbitDok', '<=', $request->filter_tgl_terbit_to);
+        }
+
+        // Filter Tanggal Berakhir
+        if ($request->filled('filter_tgl_berakhir_from')) {
+            $query->where('TglBerakhirDok', '>=', $request->filter_tgl_berakhir_from);
+        }
+        if ($request->filled('filter_tgl_berakhir_to')) {
+            $query->where('TglBerakhirDok', '<=', $request->filter_tgl_berakhir_to);
+        }
+
+        // Filter Status Dokumen
+        if ($request->filled('filter_sts_berlaku')) {
+            $query->where('StsBerlakuDok', $request->filter_sts_berlaku);
+        }
+
+        $dokLegals = $query->get();
+
+        // Format tanggal untuk nama file
+        $currentDate = now()->format('d-m-Y_H-i-s');
+        $fileName = 'Dokumen_Legal_' . $currentDate . '.xlsx';
+
+        return Excel::download(new DokLegalExport($dokLegals, $filters), $fileName);
     }
 }
