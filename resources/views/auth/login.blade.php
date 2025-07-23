@@ -290,7 +290,7 @@
                     <div class="form-group">
                         <label for="nik" class="form-label">NIK</label>
                         <input id="nik" class="form-control @error('nik') is-invalid @enderror" type="text"
-                            name="nik" value="{{ old('nik') }}" required autofocus autocomplete="username">
+                            name="nik" value="{{ old('nik') }}" placeholder="Masukan NIK" required autofocus autocomplete="username">
                         @error('nik')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
@@ -301,7 +301,7 @@
                         <label for="password" class="form-label">Password</label>
                         <div class="password-input-container">
                             <input id="password" class="form-control @error('password') is-invalid @enderror"
-                                type="password" name="password" required autocomplete="current-password">
+                                type="password" name="password" placeholder="Masukan Password" required autocomplete="current-password">
                             <button type="button" class="password-toggle" onclick="togglePassword()">
                                 <i class="fas fa-eye" id="password-eye"></i>
                             </button>

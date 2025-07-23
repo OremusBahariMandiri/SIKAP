@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if ($.fn.DataTable.isDataTable(this)) {
                 $(this).DataTable().destroy();
             }
-            
+
             // Initialize DataTable
             $(this).DataTable({
                 responsive: true,
@@ -71,18 +71,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = $(this).data('id');
         const name = $(this).data('name');
         const url = $(this).data('url') || $(this).data('route');
-        
+
         // Set item name in modal
         $('#itemNameToDelete').text(name);
-        
+
         // Set form action URL
         $('#deleteForm').attr('action', url);
-        
+
         // Show modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
         deleteModal.show();
     });
-    
+
     // Auto-hide alerts after 5 seconds
     setTimeout(function() {
         $(".alert").fadeOut("slow");

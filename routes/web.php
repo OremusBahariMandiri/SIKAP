@@ -140,7 +140,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['access:kategori-dok,detail'])->group(function () {
         Route::get('/kategori-dok', [KategoriDokController::class, 'index'])->name('kategori-dok.index');
         Route::get('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'show'])->name('kategori-dok.show')->where('kategoriDok', '[0-9]+');
-
     });
 
     Route::middleware(['access:kategori-dok,ubah'])->group(function () {
@@ -190,9 +189,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/update-password', [App\Http\Controllers\SettingsController::class, 'updatePassword'])->name('settings.update-password');
     // Route untuk debugging
     Route::get('/debug/users/create', [UserController::class, 'create'])->name('debug.users.create');
 });
 
 // Auth routes (login, logout, reset password)
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
