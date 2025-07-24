@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -105,284 +104,114 @@ class DokLegalController extends Controller
      */
     public function store(Request $request)
     {
-        // Log semua info request yang diterima
-        Log::info('Memulai proses penambahan dokumen legal baru');
-        Log::info('Request data:', $request->except(['file_dokumen']));
+        // Definisi validasi
+        $rules = [
+            'IdKode' => 'required|string|max:255|unique:B01DokLegal,IdKode',
+            'NoRegDok' => [
+                'required',
+                'string',
+                'max:50',
+                'unique:B01DokLegal,NoRegDok'
+            ],
+            'DokPerusahaan' => 'required|string|max:255',
+            'perusahaan_id' => 'required|exists:A03DmPerusahaan,id',
+            'KategoriDok' => 'required|string|max:255',
+            'kategori_id' => 'required|exists:A04DmKategoriDok,id',
+            'JenisDok' => 'required|string|max:255',
+            'jenis_id' => 'required|exists:A05DmJenisDok,id',
+            'PeruntukanDok' => 'required|string|min:3|max:255',
+            'DokAtasNama' => 'required|string|max:255',
+            'KetDok' => 'nullable|string',
+            'JnsMasaBerlaku' => 'required|in:Tetap,Perpanjangan',
+            'TglTerbitDok' => 'required|date|before_or_equal:today',
+            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx', // Maksimal 10MB, wajib diisi
+            'StsBerlakuDok' => 'required|in:Berlaku,Tidak Berlaku',
+        ];
 
-        try {
-            // Log informasi detail tentang file yang diupload
-            if ($request->hasFile('file_dokumen')) {
-                $file = $request->file('file_dokumen');
-
-                // Log informasi dasar file
-                Log::info('File info detail:', [
-                    'originalName' => $file->getClientOriginalName(),
-                    'mimeType' => $file->getMimeType(),
-                    'size' => $file->getSize(),
-                    'extension' => $file->getClientOriginalExtension(),
-                    'error' => $file->getError(),
-                    'isValid' => $file->isValid(),
-                    'hashName' => $file->hashName(),
-                    'realPath' => $file->getRealPath(),
-                    'tempFilePath' => $file->getPathname()
-                ]);
-
-                // Untuk file PDF, cek informasi lebih detail
-                if ($file->getClientOriginalExtension() === 'pdf' || $file->getMimeType() === 'application/pdf') {
-                    Log::info('Mendeteksi file PDF, melakukan pemeriksaan tambahan');
-
-                    // Cek apakah file dapat dibaca
-                    if (file_exists($file->getRealPath())) {
-                        $fileSize = filesize($file->getRealPath());
-                        $isReadable = is_readable($file->getRealPath());
-
-                        Log::info('Pemeriksaan file PDF:', [
-                            'exists' => true,
-                            'fileSize' => $fileSize,
-                            'isReadable' => $isReadable
-                        ]);
-
-                        // Coba baca beberapa byte awal untuk memastikan format PDF
-                        try {
-                            $handle = fopen($file->getRealPath(), 'r');
-                            $header = fread($handle, 5); // Baca 5 byte pertama
-                            fclose($handle);
-
-                            Log::info('Header file PDF:', [
-                                'header' => bin2hex($header),
-                                'isPDFFormat' => (substr($header, 0, 4) === '%PDF')
-                            ]);
-                        } catch (\Exception $e) {
-                            Log::error('Gagal membaca header file PDF: ' . $e->getMessage());
-                        }
-                    } else {
-                        Log::warning('File PDF tidak ada di path sementara', [
-                            'path' => $file->getRealPath()
-                        ]);
-                    }
-                }
-            } else {
-                Log::warning('File dokumen tidak ditemukan dalam request. Memeriksa request secara mendetail.');
-
-                // Log input file dari request untuk debugging
-                if ($request->hasFile('file_dokumen')) {
-                    Log::info('hasFile() mengembalikan true tapi validasi lain gagal');
-                } else {
-                    Log::warning('hasFile() mengembalikan false');
-                }
-
-                // Periksa semua file yang dikirim
-                if ($request->allFiles()) {
-                    Log::info('Semua file dalam request:', array_keys($request->allFiles()));
-                } else {
-                    Log::warning('Tidak ada file yang ditemukan dalam request');
-                }
-
-                // Periksa request headers
-                Log::info('Request headers:', [
-                    'Content-Type' => $request->header('Content-Type'),
-                    'Content-Length' => $request->header('Content-Length')
-                ]);
-            }
-
-            // Definisi validasi
-            $rules = [
-                'IdKode' => 'required|string|max:255|unique:B01DokLegal,IdKode',
-                'NoRegDok' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    'unique:B01DokLegal,NoRegDok'
-                ],
-                'DokPerusahaan' => 'required|string|max:255',
-                'perusahaan_id' => 'required|exists:A03DmPerusahaan,id',
-                'KategoriDok' => 'required|string|max:255',
-                'kategori_id' => 'required|exists:A04DmKategoriDok,id',
-                'JenisDok' => 'required|string|max:255',
-                'jenis_id' => 'required|exists:A05DmJenisDok,id',
-                'PeruntukanDok' => 'required|string|min:3|max:255',
-                'DokAtasNama' => 'required|string|max:255',
-                'KetDok' => 'nullable|string',
-                'JnsMasaBerlaku' => 'required|in:Tetap,Perpanjangan',
-                'TglTerbitDok' => 'required|date|before_or_equal:today',
-                'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:20480', // Maksimal 20MB
-                'StsBerlakuDok' => 'required|in:Berlaku,Tidak Berlaku',
-            ];
-
-            // Tambahkan validasi untuk Tanggal Berakhir jika Jenis Masa Berlaku adalah Perpanjangan
-            if ($request->JnsMasaBerlaku == 'Perpanjangan') {
-                $rules['TglBerakhirDok'] = 'required|date|after:TglTerbitDok';
-                $rules['TglPengingat'] = 'nullable|date|before:TglBerakhirDok';
-            } else {
-                $rules['TglBerakhirDok'] = 'nullable|date';
-                $rules['TglPengingat'] = 'nullable|date';
-            }
-
-            // Pesan validasi kustom
-            $messages = [
-                'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
-                'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
-                'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
-                'perusahaan_id.required' => 'Perusahaan wajib dipilih',
-                'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
-                'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
-                'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
-                'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
-                'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
-                'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
-                'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
-                'DokAtasNama.required' => 'Atas Nama wajib diisi',
-                'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
-                'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
-                'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
-                'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
-                'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
-                'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
-                'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
-                'file_dokumen.required' => 'File Dokumen wajib diunggah',
-                'file_dokumen.file' => 'Upload harus berupa file yang valid',
-                'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
-                'file_dokumen.max' => 'Ukuran file tidak boleh lebih dari 20MB',
-                'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
-                'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
-            ];
-
-            Log::info('Validasi form dimulai');
-
-            // Validasi request
-            $validated = $request->validate($rules, $messages);
-
-            Log::info('Validasi form berhasil');
-
-            // Hitung masa berlaku secara otomatis
-            if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
-                $tglTerbit = Carbon::parse($request->TglTerbitDok);
-                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
-
-                $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
-                Log::info('Masa berlaku dihitung:', ['hasil' => $validated['MasaBerlaku']]);
-            } else {
-                $validated['MasaBerlaku'] = 'Tetap';
-            }
-
-            // Hitung masa pengingat secara otomatis
-            if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
-                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
-                $tglPengingat = Carbon::parse($request->TglPengingat);
-
-                $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
-                Log::info('Masa pengingat dihitung:', ['hasil' => $validated['MasaPengingat']]);
-            } else {
-                $validated['MasaPengingat'] = '-';
-            }
-
-            // Handle file upload
-            if ($request->hasFile('file_dokumen')) {
-                try {
-                    Log::info('Memulai proses upload file');
-
-                    $file = $request->file('file_dokumen');
-                    $fileName = time() . '_' . $file->getClientOriginalName();
-
-                    // Periksa ekstensi file dan perlakukan PDF secara khusus
-                    $extension = strtolower($file->getClientOriginalExtension());
-
-                    if ($extension === 'pdf') {
-                        Log::info('Menangani file PDF dengan perlakuan khusus');
-
-                        // Buat direktori jika belum ada
-                        $uploadDir = 'uploads/dokumen';
-                        if (!Storage::disk('public')->exists($uploadDir)) {
-                            Storage::disk('public')->makeDirectory($uploadDir);
-                            Log::info('Membuat direktori uploads/dokumen');
-                        }
-
-                        // Simpan dengan metode alternatif untuk file PDF
-                        $filePath = $file->getRealPath();
-                        $fileContents = file_get_contents($filePath);
-
-                        if ($fileContents === false) {
-                            Log::error('Gagal membaca isi file PDF', [
-                                'filePath' => $filePath
-                            ]);
-                            throw new \Exception('Gagal membaca isi file PDF');
-                        }
-
-                        $savePath = 'uploads/dokumen/' . $fileName;
-                        $saveResult = Storage::disk('public')->put($savePath, $fileContents);
-
-                        if ($saveResult) {
-                            Log::info('File PDF berhasil disimpan dengan metode alternatif', [
-                                'path' => $savePath
-                            ]);
-                            $validated['FileDok'] = $fileName;
-                        } else {
-                            Log::error('Gagal menyimpan file PDF dengan metode alternatif');
-                            throw new \Exception('Gagal menyimpan file PDF ke storage');
-                        }
-                    } else {
-                        // Metode normal untuk file non-PDF
-                        Log::info('Menyimpan file non-PDF ke storage', [
-                            'path' => 'uploads/dokumen',
-                            'fileName' => $fileName
-                        ]);
-
-                        $uploadPath = $file->storeAs('uploads/dokumen', $fileName, 'public');
-
-                        if ($uploadPath) {
-                            Log::info('File berhasil disimpan', ['path' => $uploadPath]);
-                            $validated['FileDok'] = $fileName;
-                        } else {
-                            Log::error('Gagal menyimpan file ke storage');
-                            throw new \Exception('Gagal menyimpan file ke storage');
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error saat upload file: ' . $e->getMessage(), [
-                        'exception' => $e,
-                        'trace' => $e->getTraceAsString()
-                    ]);
-
-                    return back()->withInput()->withErrors(['file_dokumen' => 'Terjadi kesalahan saat mengunggah file: ' . $e->getMessage()]);
-                }
-            } else {
-                Log::warning('Tidak ada file yang diunggah setelah validasi');
-                return back()->withInput()->withErrors(['file_dokumen' => 'File dokumen wajib diunggah']);
-            }
-
-            // Ambil data master berdasarkan ID
-            Log::info('Mengambil data master');
-
-            $perusahaan = Perusahaan::findOrFail($request->perusahaan_id);
-            $kategori = KategoriDok::findOrFail($request->kategori_id);
-            $jenis = JenisDok::findOrFail($request->jenis_id);
-
-            // Set nilai dari master data
-            $validated['DokPerusahaan'] = $perusahaan->NamaPrsh;
-            $validated['KategoriDok'] = $kategori->KategoriDok;
-            $validated['JenisDok'] = $jenis->JenisDok;
-
-            // Tambahkan informasi user yang membuat data
-            $validated['created_by'] = auth()->user()->id;
-
-            Log::info('Menyimpan data dokumen ke database');
-            $dokLegal = DokLegal::create($validated);
-            Log::info('Data dokumen berhasil disimpan', ['id' => $dokLegal->id]);
-
-            Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Ditambahkan.');
-            return redirect()->route('dokLegal.index');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validasi error: ' . json_encode($e->errors()));
-            throw $e;
-        } catch (\Exception $e) {
-            Log::error('Error saat menambahkan dokumen: ' . $e->getMessage(), [
-                'exception' => $e,
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            Alert::error('Gagal', 'Terjadi kesalahan saat menyimpan dokumen: ' . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        // Tambahkan validasi untuk Tanggal Berakhir jika Jenis Masa Berlaku adalah Perpanjangan
+        if ($request->JnsMasaBerlaku == 'Perpanjangan') {
+            $rules['TglBerakhirDok'] = 'required|date|after:TglTerbitDok';
+            $rules['TglPengingat'] = 'nullable|date|before:TglBerakhirDok';
+        } else {
+            $rules['TglBerakhirDok'] = 'nullable|date';
+            $rules['TglPengingat'] = 'nullable|date';
         }
+
+        // Pesan validasi kustom
+        $messages = [
+            'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
+            'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
+            'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
+            'perusahaan_id.required' => 'Perusahaan wajib dipilih',
+            'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
+            'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
+            'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
+            'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
+            'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
+            'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
+            'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
+            'DokAtasNama.required' => 'Atas Nama wajib diisi',
+            'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
+            'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
+            'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
+            'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
+            'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
+            'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
+            'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
+            'file_dokumen.required' => 'File Dokumen wajib diunggah',
+            'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
+            'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
+            'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
+        ];
+
+        // Validasi request
+        $validated = $request->validate($rules, $messages);
+
+        // Hitung masa berlaku secara otomatis
+        if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
+            $tglTerbit = Carbon::parse($request->TglTerbitDok);
+            $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+
+            $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
+        } else {
+            $validated['MasaBerlaku'] = 'Tetap';
+        }
+
+        // Hitung masa pengingat secara otomatis
+        if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
+            $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+            $tglPengingat = Carbon::parse($request->TglPengingat);
+
+            $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
+        } else {
+            $validated['MasaPengingat'] = '-';
+        }
+
+        // Handle file upload
+        if ($request->hasFile('file_dokumen')) {
+            $file = $request->file('file_dokumen');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('uploads/dokumen', $fileName, 'public');
+            $validated['FileDok'] = $fileName;
+        }
+
+        // Ambil data master berdasarkan ID
+        $perusahaan = Perusahaan::findOrFail($request->perusahaan_id);
+        $kategori = KategoriDok::findOrFail($request->kategori_id);
+        $jenis = JenisDok::findOrFail($request->jenis_id);
+
+        // Set nilai dari master data
+        $validated['DokPerusahaan'] = $perusahaan->NamaPrsh;
+        $validated['KategoriDok'] = $kategori->KategoriDok;
+        $validated['JenisDok'] = $jenis->JenisDok;
+
+        // Tambahkan informasi user yang membuat dan mengupdate data
+        $validated['created_by'] = auth()->user()->id; // Use the actual 'id' property
+
+        DokLegal::create($validated);
+
+        Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Ditambahkan.');
+        return redirect()->route('dokLegal.index');
     }
 
     /**
@@ -425,294 +254,137 @@ class DokLegalController extends Controller
      */
     public function update(Request $request, DokLegal $dokLegal)
     {
-        Log::info('Memulai proses update dokumen legal', ['id' => $dokLegal->id]);
-        Log::info('Request data:', $request->except(['file_dokumen']));
+        // Definisi validasi
+        $rules = [
+            'IdKode' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('B01DokLegal', 'IdKode')->ignore($dokLegal->id)
+            ],
+            'NoRegDok' => [
+                'required',
+                'string',
+                'max:50', // Hanya huruf kapital, angka, garis miring, dan strip
+                Rule::unique('B01DokLegal', 'NoRegDok')->ignore($dokLegal->id)
+            ],
+            'DokPerusahaan' => 'required|string|max:255',
+            'perusahaan_id' => 'required|exists:A03DmPerusahaan,id',
+            'KategoriDok' => 'required|string|max:255',
+            'kategori_id' => 'required|exists:A04DmKategoriDok,id',
+            'JenisDok' => 'required|string|max:255',
+            'jenis_id' => 'required|exists:A05DmJenisDok,id',
+            'PeruntukanDok' => 'required|string|min:3|max:255',
+            'DokAtasNama' => 'required|string|max:255',
+            'KetDok' => 'nullable|string',
+            'JnsMasaBerlaku' => 'required|in:Tetap,Perpanjangan',
+            'TglTerbitDok' => 'required|date|before_or_equal:today',
+            'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx', // Maksimal 10MB
+            'StsBerlakuDok' => 'required|in:Berlaku,Tidak Berlaku',
+        ];
 
-        try {
-            // Log informasi detail tentang file yang diupload (jika ada)
-            if ($request->hasFile('file_dokumen')) {
-                $file = $request->file('file_dokumen');
-
-                // Log informasi dasar file
-                Log::info('File info detail untuk update:', [
-                    'originalName' => $file->getClientOriginalName(),
-                    'mimeType' => $file->getMimeType(),
-                    'size' => $file->getSize(),
-                    'extension' => $file->getClientOriginalExtension(),
-                    'error' => $file->getError(),
-                    'isValid' => $file->isValid(),
-                    'hashName' => $file->hashName(),
-                    'realPath' => $file->getRealPath(),
-                    'tempFilePath' => $file->getPathname()
-                ]);
-
-                // Untuk file PDF, cek informasi lebih detail
-                if ($file->getClientOriginalExtension() === 'pdf' || $file->getMimeType() === 'application/pdf') {
-                    Log::info('Mendeteksi file PDF untuk update, melakukan pemeriksaan tambahan');
-
-                    // Cek apakah file dapat dibaca
-                    if (file_exists($file->getRealPath())) {
-                        $fileSize = filesize($file->getRealPath());
-                        $isReadable = is_readable($file->getRealPath());
-
-                        Log::info('Pemeriksaan file PDF untuk update:', [
-                            'exists' => true,
-                            'fileSize' => $fileSize,
-                            'isReadable' => $isReadable
-                        ]);
-
-                        // Coba baca beberapa byte awal untuk memastikan format PDF
-                        try {
-                            $handle = fopen($file->getRealPath(), 'r');
-                            $header = fread($handle, 5); // Baca 5 byte pertama
-                            fclose($handle);
-
-                            Log::info('Header file PDF:', [
-                                'header' => bin2hex($header),
-                                'isPDFFormat' => (substr($header, 0, 4) === '%PDF')
-                            ]);
-                        } catch (\Exception $e) {
-                            Log::error('Gagal membaca header file PDF: ' . $e->getMessage());
-                        }
-                    } else {
-                        Log::warning('File PDF untuk update tidak ada di path sementara', [
-                            'path' => $file->getRealPath()
-                        ]);
-                    }
-                }
-            }
-
-            // Definisi validasi
-            $rules = [
-                'IdKode' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('B01DokLegal', 'IdKode')->ignore($dokLegal->id)
-                ],
-                'NoRegDok' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    Rule::unique('B01DokLegal', 'NoRegDok')->ignore($dokLegal->id)
-                ],
-                'DokPerusahaan' => 'required|string|max:255',
-                'perusahaan_id' => 'required|exists:A03DmPerusahaan,id',
-                'KategoriDok' => 'required|string|max:255',
-                'kategori_id' => 'required|exists:A04DmKategoriDok,id',
-                'JenisDok' => 'required|string|max:255',
-                'jenis_id' => 'required|exists:A05DmJenisDok,id',
-                'PeruntukanDok' => 'required|string|min:3|max:255',
-                'DokAtasNama' => 'required|string|max:255',
-                'KetDok' => 'nullable|string',
-                'JnsMasaBerlaku' => 'required|in:Tetap,Perpanjangan',
-                'TglTerbitDok' => 'required|date|before_or_equal:today',
-                'file_dokumen' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:20480',
-                'StsBerlakuDok' => 'required|in:Berlaku,Tidak Berlaku',
-            ];
-
-            // Tambahkan validasi untuk Tanggal Berakhir jika Jenis Masa Berlaku adalah Perpanjangan
-            if ($request->JnsMasaBerlaku == 'Perpanjangan') {
-                $rules['TglBerakhirDok'] = 'required|date|after:TglTerbitDok';
-                $rules['TglPengingat'] = 'nullable|date|before:TglBerakhirDok';
-            } else {
-                $rules['TglBerakhirDok'] = 'nullable|date';
-                $rules['TglPengingat'] = 'nullable|date';
-            }
-
-            // Pesan validasi kustom
-            $messages = [
-                'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
-                'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
-                'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
-                'perusahaan_id.required' => 'Perusahaan wajib dipilih',
-                'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
-                'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
-                'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
-                'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
-                'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
-                'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
-                'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
-                'DokAtasNama.required' => 'Atas Nama wajib diisi',
-                'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
-                'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
-                'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
-                'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
-                'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
-                'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
-                'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
-                'file_dokumen.file' => 'Upload harus berupa file yang valid',
-                'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
-                'file_dokumen.max' => 'Ukuran file tidak boleh lebih dari 20MB',
-                'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
-                'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
-            ];
-
-            Log::info('Validasi form update dimulai');
-
-            // Validasi request
-            $validated = $request->validate($rules, $messages);
-
-            Log::info('Validasi form update berhasil');
-
-            // Hitung masa berlaku secara otomatis
-            if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
-                $tglTerbit = Carbon::parse($request->TglTerbitDok);
-                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
-
-                $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
-                Log::info('Masa berlaku update dihitung:', ['hasil' => $validated['MasaBerlaku']]);
-            } else {
-                $validated['MasaBerlaku'] = 'Tetap';
-            }
-
-            // Hitung masa pengingat secara otomatis
-            if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
-                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
-                $tglPengingat = Carbon::parse($request->TglPengingat);
-
-                $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
-                Log::info('Masa pengingat update dihitung:', ['hasil' => $validated['MasaPengingat']]);
-            } else {
-                $validated['MasaPengingat'] = '-';
-            }
-
-            // Handle file upload
-            if ($request->hasFile('file_dokumen')) {
-                try {
-                    Log::info('Memulai proses update file');
-
-                    // Check old file existence and delete
-                    if ($dokLegal->FileDok) {
-                        $oldFilePath = 'uploads/dokumen/' . $dokLegal->FileDok;
-                        Log::info('Memeriksa file lama', ['path' => $oldFilePath]);
-
-                        if (Storage::disk('public')->exists($oldFilePath)) {
-                            Log::info('Menghapus file lama');
-                            Storage::disk('public')->delete($oldFilePath);
-                            Log::info('File lama berhasil dihapus');
-                        } else {
-                            Log::warning('File lama tidak ditemukan', ['path' => $oldFilePath]);
-                        }
-                    }
-
-                    $file = $request->file('file_dokumen');
-                    $fileName = time() . '_' . $file->getClientOriginalName();
-
-                    // Periksa ekstensi file dan perlakukan PDF secara khusus
-                    $extension = strtolower($file->getClientOriginalExtension());
-
-                    if ($extension === 'pdf') {
-                        Log::info('Menangani file PDF dengan perlakuan khusus untuk update');
-
-                        // Buat direktori jika belum ada
-                        $uploadDir = 'uploads/dokumen';
-                        if (!Storage::disk('public')->exists($uploadDir)) {
-                            Storage::disk('public')->makeDirectory($uploadDir);
-                            Log::info('Membuat direktori uploads/dokumen');
-                        }
-
-                        // Simpan dengan metode alternatif untuk file PDF
-                        $filePath = $file->getRealPath();
-                        $fileContents = file_get_contents($filePath);
-
-                        if ($fileContents === false) {
-                            Log::error('Gagal membaca isi file PDF untuk update', [
-                                'filePath' => $filePath
-                            ]);
-                            throw new \Exception('Gagal membaca isi file PDF');
-                        }
-
-                        $savePath = 'uploads/dokumen/' . $fileName;
-                        $saveResult = Storage::disk('public')->put($savePath, $fileContents);
-
-                        if ($saveResult) {
-                            Log::info('File PDF update berhasil disimpan dengan metode alternatif', [
-                                'path' => $savePath
-                            ]);
-                            $validated['FileDok'] = $fileName;
-                        } else {
-                            Log::error('Gagal menyimpan file PDF update dengan metode alternatif');
-                            throw new \Exception('Gagal menyimpan file PDF ke storage');
-                        }
-                    } else {
-                        // Metode normal untuk file non-PDF
-                        Log::info('Menyimpan file non-PDF update ke storage', [
-                            'path' => 'uploads/dokumen',
-                            'fileName' => $fileName
-                        ]);
-
-                        $uploadPath = $file->storeAs('uploads/dokumen', $fileName, 'public');
-
-                        if ($uploadPath) {
-                            Log::info('File update berhasil disimpan', ['path' => $uploadPath]);
-                            $validated['FileDok'] = $fileName;
-                        } else {
-                            Log::error('Gagal menyimpan file update ke storage');
-                            throw new \Exception('Gagal menyimpan file ke storage');
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error saat update file: ' . $e->getMessage(), [
-                        'exception' => $e,
-                        'trace' => $e->getTraceAsString()
-                    ]);
-
-                    return back()->withInput()->withErrors(['file_dokumen' => 'Terjadi kesalahan saat mengunggah file: ' . $e->getMessage()]);
-                }
-            } else {
-                Log::info('Tidak ada file baru yang diunggah, menggunakan file yang ada');
-            }
-
-            // Ambil data master berdasarkan ID
-            Log::info('Mengambil data master untuk update');
-
-            $perusahaan = Perusahaan::findOrFail($request->perusahaan_id);
-            $kategori = KategoriDok::findOrFail($request->kategori_id);
-            $jenis = JenisDok::findOrFail($request->jenis_id);
-
-            // Set nilai dari master data
-            $validated['DokPerusahaan'] = $perusahaan->NamaPrsh;
-            $validated['KategoriDok'] = $kategori->KategoriDok;
-            $validated['JenisDok'] = $jenis->JenisDok;
-
-            // Update informasi user yang mengupdate data
-            $validated['updated_by'] = auth()->user()->id;
-
-            Log::info('Memperbarui data dokumen di database', ['id' => $dokLegal->id]);
-            $dokLegal->update($validated);
-            Log::info('Data dokumen berhasil diperbarui');
-
-            Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Diperbarui.');
-            return redirect()->route('dokLegal.index');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validasi error update: ' . json_encode($e->errors()));
-            throw $e;
-        } catch (\Exception $e) {
-            Log::error('Error saat memperbarui dokumen: ' . $e->getMessage(), [
-                'exception' => $e,
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            Alert::error('Gagal', 'Terjadi kesalahan saat memperbarui dokumen: ' . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        // Tambahkan validasi untuk Tanggal Berakhir jika Jenis Masa Berlaku adalah Perpanjangan
+        if ($request->JnsMasaBerlaku == 'Perpanjangan') {
+            $rules['TglBerakhirDok'] = 'required|date|after:TglTerbitDok';
+            $rules['TglPengingat'] = 'nullable|date|before:TglBerakhirDok';
+        } else {
+            $rules['TglBerakhirDok'] = 'nullable|date';
+            $rules['TglPengingat'] = 'nullable|date';
         }
+
+        // Pesan validasi kustom
+        $messages = [
+            'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
+            'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
+            'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
+            'perusahaan_id.required' => 'Perusahaan wajib dipilih',
+            'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
+            'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
+            'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
+            'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
+            'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
+            'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
+            'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
+            'DokAtasNama.required' => 'Atas Nama wajib diisi',
+            'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
+            'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
+            'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
+            'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
+            'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
+            'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
+            'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
+            'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
+            'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
+            'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
+        ];
+
+        // Validasi request
+        $validated = $request->validate($rules, $messages);
+
+        // Hitung masa berlaku secara otomatis
+        if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
+            $tglTerbit = Carbon::parse($request->TglTerbitDok);
+            $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+
+            $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
+        } else {
+            $validated['MasaBerlaku'] = 'Tetap';
+        }
+
+        // Hitung masa pengingat secara otomatis
+        if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
+            $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+            $tglPengingat = Carbon::parse($request->TglPengingat);
+
+            $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
+        } else {
+            $validated['MasaPengingat'] = '-';
+        }
+
+        // Handle file upload
+        if ($request->hasFile('file_dokumen')) {
+            // Delete old file if exists
+            if ($dokLegal->FileDok && Storage::disk('public')->exists('uploads/dokumen/' . $dokLegal->FileDok)) {
+                Storage::disk('public')->delete('uploads/dokumen/' . $dokLegal->FileDok);
+            }
+
+            $file = $request->file('file_dokumen');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('uploads/dokumen', $fileName, 'public');
+            $validated['FileDok'] = $fileName;
+        }
+
+        // Ambil data master berdasarkan ID
+        $perusahaan = Perusahaan::findOrFail($request->perusahaan_id);
+        $kategori = KategoriDok::findOrFail($request->kategori_id);
+        $jenis = JenisDok::findOrFail($request->jenis_id);
+
+        // Set nilai dari master data
+        $validated['DokPerusahaan'] = $perusahaan->NamaPrsh;
+        $validated['KategoriDok'] = $kategori->KategoriDok;
+        $validated['JenisDok'] = $jenis->JenisDok;
+
+        // Update informasi user yang mengupdate data
+        $validated['updated_by'] = auth()->user()->id;
+
+        $dokLegal->update($validated);
+
+        Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Diperbarui.');
+        return redirect()->route('dokLegal.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(DokLegal $dokLegal)
     {
-        Log::info('Memulai proses penghapusan dokumen', ['id' => $dokLegal->id]);
-
         // Verifikasi hak akses terlebih dahulu
         if (!auth()->user()->hasAccess('dokLegal', 'HapusAcs')) {
             // Log percobaan akses tidak sah
-            Log::warning('Upaya penghapusan dokumen tanpa izin', [
-                'user_id' => auth()->user()->id,
-                'dokumen_id' => $dokLegal->id
-            ]);
+            \Log::warning('Upaya penghapusan dokumen tanpa izin oleh user: ' . auth()->user()->id . ' untuk dokumen ID: ' . $dokLegal->id);
 
             // Redirect dengan pesan error
             return redirect()->route('dokLegal.index')
@@ -721,53 +393,25 @@ class DokLegalController extends Controller
 
         try {
             // Delete file if exists
-            if ($dokLegal->FileDok) {
-                $filePath = 'uploads/dokumen/' . $dokLegal->FileDok;
-                Log::info('Memeriksa file untuk dihapus', ['path' => $filePath]);
-
-                if (Storage::disk('public')->exists($filePath)) {
-                    Log::info('Menghapus file dokumen');
-                    Storage::disk('public')->delete($filePath);
-                    Log::info('File dokumen berhasil dihapus');
-                } else {
-                    Log::warning('File dokumen tidak ditemukan saat penghapusan', ['path' => $filePath]);
-                }
+            if ($dokLegal->FileDok && Storage::disk('public')->exists('uploads/dokumen/' . $dokLegal->FileDok)) {
+                Storage::disk('public')->delete('uploads/dokumen/' . $dokLegal->FileDok);
             }
 
-            Log::info('Menghapus data dokumen dari database');
             $dokLegal->delete();
-            Log::info('Data dokumen berhasil dihapus');
 
             Alert::success('Berhasil', 'Data Dokumen Legal Berhasil Dihapus.');
             return redirect()->route('dokLegal.index');
         } catch (\Exception $e) {
-            Log::error('Error saat menghapus dokumen: ' . $e->getMessage(), [
-                'exception' => $e,
-                'trace' => $e->getTraceAsString()
-            ]);
-
+            \Log::error('Error saat menghapus dokumen: ' . $e->getMessage());
             return redirect()->route('dokLegal.index')
-                ->with('error', 'Terjadi kesalahan saat menghapus dokumen: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat menghapus dokumen. Silakan coba lagi.');
         }
     }
 
 
     public function download(DokLegal $dokLegal)
     {
-        Log::info('Memulai proses download dokumen', ['id' => $dokLegal->id, 'file' => $dokLegal->FileDok]);
-
-        if (!$dokLegal->FileDok) {
-            Log::warning('Percobaan download dokumen tanpa file', ['id' => $dokLegal->id]);
-            return back()->with('error', 'File tidak ditemukan.');
-        }
-
-        $filePath = 'uploads/dokumen/' . $dokLegal->FileDok;
-
-        if (!Storage::disk('public')->exists($filePath)) {
-            Log::warning('File dokumen tidak ditemukan saat download', [
-                'id' => $dokLegal->id,
-                'path' => $filePath
-            ]);
+        if (!$dokLegal->FileDok || !Storage::disk('public')->exists('uploads/dokumen/' . $dokLegal->FileDok)) {
             return back()->with('error', 'File tidak ditemukan.');
         }
 
@@ -799,15 +443,9 @@ class DokLegalController extends Controller
             $cleanPeruntukanDok . '_' .
             $tanggalTerbit . '.' . $originalExtension;
 
-        Log::info('Download dokumen', [
-            'id' => $dokLegal->id,
-            'original_file' => $dokLegal->FileDok,
-            'download_name' => $newFileName
-        ]);
-
         // Menyiapkan file untuk diunduh dengan nama yang telah diformat
         return Storage::disk('public')->download(
-            $filePath,
+            'uploads/dokumen/' . $dokLegal->FileDok,
             $newFileName
         );
     }
@@ -871,14 +509,10 @@ class DokLegalController extends Controller
             'TglPengingat' => $dokLegal->TglPengingat ? $dokLegal->TglPengingat->format('Y-m-d') : null
         ]);
     }
-
     public function view(DokLegal $dokLegal)
     {
-        Log::info('Memulai proses view dokumen', ['id' => $dokLegal->id, 'file' => $dokLegal->FileDok]);
-
         // Pastikan file ada
         if (!$dokLegal->FileDok) {
-            Log::warning('Percobaan view dokumen tanpa file', ['id' => $dokLegal->id]);
             abort(404, 'File tidak ditemukan');
         }
 
@@ -887,22 +521,12 @@ class DokLegalController extends Controller
 
         // Cek apakah file ada
         if (!file_exists($filePath)) {
-            Log::warning('File dokumen tidak ditemukan saat view', [
-                'id' => $dokLegal->id,
-                'path' => $filePath
-            ]);
             abort(404, 'File tidak ditemukan');
         }
 
         // Dapatkan informasi file
         $fileInfo = pathinfo($filePath);
         $extension = strtolower($fileInfo['extension']);
-
-        Log::info('Info file dokumen', [
-            'extension' => $extension,
-            'filename' => $fileInfo['filename'],
-            'basename' => $fileInfo['basename']
-        ]);
 
         // Tentukan content type berdasarkan ekstensi file
         $contentTypes = [
@@ -921,11 +545,9 @@ class DokLegalController extends Controller
         ];
 
         $contentType = $contentTypes[$extension] ?? 'application/octet-stream';
-        Log::info('Content type file', ['contentType' => $contentType]);
 
         // Untuk file yang dapat ditampilkan di browser (PDF, gambar, txt)
         if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'])) {
-            Log::info('Menampilkan file secara langsung di browser');
             return response()->file($filePath, [
                 'Content-Type' => $contentType,
                 'Content-Disposition' => 'inline; filename="' . $dokLegal->FileDok . '"'
@@ -938,11 +560,6 @@ class DokLegalController extends Controller
             $fileUrl = url('storage/uploads/dokumen/' . $dokLegal->FileDok);
             $googleViewerUrl = 'https://docs.google.com/viewer?url=' . urlencode($fileUrl) . '&embedded=true';
 
-            Log::info('Menampilkan file Office dengan Google Docs Viewer', [
-                'fileUrl' => $fileUrl,
-                'googleViewerUrl' => $googleViewerUrl
-            ]);
-
             return view('dokLegal.viewer', [
                 'dokLegal' => $dokLegal,
                 'viewerUrl' => $googleViewerUrl,
@@ -951,10 +568,8 @@ class DokLegalController extends Controller
         }
 
         // Jika file tidak dapat dipreview, redirect ke download
-        Log::info('File tidak dapat dipreview, redirect ke download');
         return redirect()->route('dokLegal.download', $dokLegal);
     }
-
     // Tambahkan method baru ke DokLegalController.php
     public function getDocumentStats()
     {
