@@ -160,7 +160,6 @@ class DokLegalController extends Controller
             'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
             'file_dokumen.required' => 'File Dokumen wajib diunggah',
             'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
-            'file_dokumen.max' => 'Ukuran file terlalu besar (maksimum 10MB)',
             'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
             'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
         ];
@@ -315,7 +314,6 @@ class DokLegalController extends Controller
             'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
             'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
             'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
-            'file_dokumen.max' => 'Ukuran file terlalu besar (maksimum 10MB)',
             'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
             'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
         ];
