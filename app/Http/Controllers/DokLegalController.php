@@ -124,7 +124,7 @@ class DokLegalController extends Controller
             'KetDok' => 'nullable|string',
             'JnsMasaBerlaku' => 'required|in:Tetap,Perpanjangan',
             'TglTerbitDok' => 'required|date|before_or_equal:today',
-            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx', // Maksimal 10MB, wajib diisi
+            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:20480', // Maksimal 10MB, wajib diisi
             'StsBerlakuDok' => 'required|in:Berlaku,Tidak Berlaku',
         ];
 
