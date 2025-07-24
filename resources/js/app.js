@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 5000);
 
     // Sidebar functionality
-    const layoutContainer = document.getElementById('layoutContainer');y
+    const layoutContainer = document.getElementById('layoutContainer');
     const mediaQuery = window.matchMedia('(max-width: 991.98px)');
     const menuItems = document.querySelectorAll('.sidebar-menu-item');
 
