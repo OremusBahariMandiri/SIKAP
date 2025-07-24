@@ -27,17 +27,77 @@ class DokLegalController extends Controller
      */
     public function index()
     {
-        // Kode yang sudah ada
-        // ...
-    }
+        // Ambil semua data untuk DataTables (tanpa paginasi)
+        $dokLegals = DokLegal::with(['perusahaan', 'kategori', 'jenis'])->latest()->get();
 
+        // Ambil daftar kategori dan jenis dokumen untuk filter dropdown
+        $kategoris = KategoriDok::select('KategoriDok')->distinct()->pluck('KategoriDok');
+        $jenisDoks = JenisDok::select('JenisDok')->distinct()->pluck('JenisDok');
+
+        // Ambil daftar perusahaan untuk filter dropdown
+        $perusahaans = Perusahaan::orderBy('NamaPrsh')->pluck('NamaPrsh', 'id');
+
+        // Ambil jenis masa berlaku untuk filter dropdown
+        $jenisMasaBerlaku = ['Tetap', 'Perpanjangan'];
+
+        // check if user is admin
+        $isAdmin = auth()->user()->isAdmin();
+
+        // If user is admin, grant all permissions
+        if ($isAdmin) {
+            $hasViewPermission = true;
+            $hasEditPermission = true;
+            $hasDeletePermission = true;
+            $hasDownloadPermission = true;
+            $hasCreatePermission = true;
+        } else {
+            // Individual permission checks for non-admin users
+            $hasViewPermission = auth()->user()->hasAccess('dokLegal', 'detail');
+            $hasEditPermission = auth()->user()->hasAccess('dokLegal', 'ubah');
+            $hasDeletePermission = auth()->user()->hasAccess('dokLegal', 'hapus');
+            $hasDownloadPermission = auth()->user()->hasAccess('dokLegal', 'download');
+            $hasCreatePermission = auth()->user()->hasAccess('dokLegal', 'tambah');
+        }
+
+        return view('dokLegal.index', compact(
+            'dokLegals',
+            'kategoris',
+            'jenisDoks',
+            'jenisMasaBerlaku',
+            'perusahaans',
+            'hasViewPermission',
+            'hasEditPermission',
+            'hasDeletePermission',
+            'hasDownloadPermission',
+            'hasCreatePermission',
+            'isAdmin'
+        ));
+    }
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        // Kode yang sudah ada
-        // ...
+        // Generate ID Kode otomatis
+        $idKode = DokLegal::generateIdKode();
+
+        // Data master untuk dropdown
+        $perusahaans = Perusahaan::orderBy('NamaPrsh')->pluck('NamaPrsh', 'id');
+        $kategoris = KategoriDok::orderBy('KategoriDok')->pluck('KategoriDok', 'id');
+
+        // Get jenis dokumen with their kategori relationship
+        $jenisDoks = JenisDok::with('kategori')->orderBy('JenisDok')->get();
+
+        // Format jenis dokumen for the view
+        $formattedJenisDoks = [];
+        foreach ($jenisDoks as $jenis) {
+            $formattedJenisDoks[$jenis->id] = [
+                'name' => $jenis->JenisDok,
+                'kategori_id' => $jenis->idKategoriDok
+            ];
+        }
+
+        return view('dokLegal.create', compact('idKode', 'perusahaans', 'kategoris', 'formattedJenisDoks'));
     }
 
     /**
@@ -160,11 +220,31 @@ class DokLegalController extends Controller
 
             // Pesan validasi kustom
             $messages = [
-                // Pesan-pesan validasi yang sudah ada
+                'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
+                'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
+                'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
+                'perusahaan_id.required' => 'Perusahaan wajib dipilih',
+                'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
+                'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
+                'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
+                'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
+                'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
+                'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
+                'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
+                'DokAtasNama.required' => 'Atas Nama wajib diisi',
+                'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
+                'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
+                'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
+                'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
+                'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
+                'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
+                'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
                 'file_dokumen.required' => 'File Dokumen wajib diunggah',
                 'file_dokumen.file' => 'Upload harus berupa file yang valid',
                 'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
                 'file_dokumen.max' => 'Ukuran file tidak boleh lebih dari 20MB',
+                'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
+                'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
             ];
 
             Log::info('Validasi form dimulai');
@@ -174,8 +254,27 @@ class DokLegalController extends Controller
 
             Log::info('Validasi form berhasil');
 
-            // Kode untuk mengolah data setelah validasi
-            // ...
+            // Hitung masa berlaku secara otomatis
+            if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
+                $tglTerbit = Carbon::parse($request->TglTerbitDok);
+                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+
+                $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
+                Log::info('Masa berlaku dihitung:', ['hasil' => $validated['MasaBerlaku']]);
+            } else {
+                $validated['MasaBerlaku'] = 'Tetap';
+            }
+
+            // Hitung masa pengingat secara otomatis
+            if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
+                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+                $tglPengingat = Carbon::parse($request->TglPengingat);
+
+                $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
+                Log::info('Masa pengingat dihitung:', ['hasil' => $validated['MasaPengingat']]);
+            } else {
+                $validated['MasaPengingat'] = '-';
+            }
 
             // Handle file upload
             if ($request->hasFile('file_dokumen')) {
@@ -287,6 +386,41 @@ class DokLegalController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(DokLegal $dokLegal)
+    {
+        // Load relations
+        $dokLegal->load(['perusahaan', 'kategori', 'jenis']);
+
+        return view('dokLegal.show', compact('dokLegal'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(DokLegal $dokLegal)
+    {
+        // Data master untuk dropdown
+        $perusahaans = Perusahaan::orderBy('NamaPrsh')->pluck('NamaPrsh', 'id');
+        $kategoris = KategoriDok::orderBy('KategoriDok')->pluck('KategoriDok', 'id');
+
+        // Get jenis dokumen with their kategori relationship
+        $jenisDoks = JenisDok::with('kategori')->orderBy('JenisDok')->get();
+
+        // Format jenis dokumen for the view
+        $formattedJenisDoks = [];
+        foreach ($jenisDoks as $jenis) {
+            $formattedJenisDoks[$jenis->id] = [
+                'name' => $jenis->JenisDok,
+                'kategori_id' => $jenis->idKategoriDok
+            ];
+        }
+
+        return view('dokLegal.edit', compact('dokLegal', 'perusahaans', 'kategoris', 'formattedJenisDoks'));
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, DokLegal $dokLegal)
@@ -326,6 +460,20 @@ class DokLegalController extends Controller
                             'fileSize' => $fileSize,
                             'isReadable' => $isReadable
                         ]);
+
+                        // Coba baca beberapa byte awal untuk memastikan format PDF
+                        try {
+                            $handle = fopen($file->getRealPath(), 'r');
+                            $header = fread($handle, 5); // Baca 5 byte pertama
+                            fclose($handle);
+
+                            Log::info('Header file PDF:', [
+                                'header' => bin2hex($header),
+                                'isPDFFormat' => (substr($header, 0, 4) === '%PDF')
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Gagal membaca header file PDF: ' . $e->getMessage());
+                        }
                     } else {
                         Log::warning('File PDF untuk update tidak ada di path sementara', [
                             'path' => $file->getRealPath()
@@ -374,10 +522,30 @@ class DokLegalController extends Controller
 
             // Pesan validasi kustom
             $messages = [
-                // Pesan-pesan validasi yang sudah ada
+                'NoRegDok.required' => 'Nomor Register Dokumen wajib diisi',
+                'NoRegDok.regex' => 'Format Nomor Register Dokumen tidak valid (gunakan huruf kapital, angka, /, -)',
+                'NoRegDok.unique' => 'Nomor Register Dokumen sudah digunakan',
+                'perusahaan_id.required' => 'Perusahaan wajib dipilih',
+                'perusahaan_id.exists' => 'Perusahaan yang dipilih tidak valid',
+                'kategori_id.required' => 'Kategori Dokumen wajib dipilih',
+                'kategori_id.exists' => 'Kategori yang dipilih tidak valid',
+                'jenis_id.required' => 'Jenis Dokumen wajib dipilih',
+                'jenis_id.exists' => 'Jenis yang dipilih tidak valid',
+                'PeruntukanDok.required' => 'Peruntukan Dokumen wajib diisi',
+                'PeruntukanDok.min' => 'Peruntukan Dokumen minimal 3 karakter',
+                'DokAtasNama.required' => 'Atas Nama wajib diisi',
+                'JnsMasaBerlaku.required' => 'Jenis Masa Berlaku wajib dipilih',
+                'JnsMasaBerlaku.in' => 'Jenis Masa Berlaku tidak valid',
+                'TglTerbitDok.required' => 'Tanggal Terbit Dokumen wajib diisi',
+                'TglTerbitDok.before_or_equal' => 'Tanggal Terbit tidak boleh di masa depan',
+                'TglBerakhirDok.required' => 'Tanggal Berakhir wajib diisi untuk jenis masa berlaku Perpanjangan',
+                'TglBerakhirDok.after' => 'Tanggal Berakhir harus setelah Tanggal Terbit',
+                'TglPengingat.before' => 'Tanggal Pengingat harus sebelum Tanggal Berakhir',
                 'file_dokumen.file' => 'Upload harus berupa file yang valid',
                 'file_dokumen.mimes' => 'Format file tidak didukung. Gunakan PDF, JPG, PNG, DOC, DOCX, XLS, atau XLSX',
                 'file_dokumen.max' => 'Ukuran file tidak boleh lebih dari 20MB',
+                'StsBerlakuDok.required' => 'Status Berlaku Dokumen wajib dipilih',
+                'StsBerlakuDok.in' => 'Status Berlaku Dokumen tidak valid',
             ];
 
             Log::info('Validasi form update dimulai');
@@ -387,8 +555,27 @@ class DokLegalController extends Controller
 
             Log::info('Validasi form update berhasil');
 
-            // Kode untuk mengolah data setelah validasi
-            // ...
+            // Hitung masa berlaku secara otomatis
+            if ($request->filled('TglBerakhirDok') && $request->JnsMasaBerlaku == 'Perpanjangan') {
+                $tglTerbit = Carbon::parse($request->TglTerbitDok);
+                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+
+                $validated['MasaBerlaku'] = DokLegal::hitungMasaBerlaku($tglTerbit, $tglBerakhir);
+                Log::info('Masa berlaku update dihitung:', ['hasil' => $validated['MasaBerlaku']]);
+            } else {
+                $validated['MasaBerlaku'] = 'Tetap';
+            }
+
+            // Hitung masa pengingat secara otomatis
+            if ($request->filled('TglPengingat') && $request->filled('TglBerakhirDok')) {
+                $tglBerakhir = Carbon::parse($request->TglBerakhirDok);
+                $tglPengingat = Carbon::parse($request->TglPengingat);
+
+                $validated['MasaPengingat'] = DokLegal::hitungMasaBerlaku($tglPengingat, $tglBerakhir);
+                Log::info('Masa pengingat update dihitung:', ['hasil' => $validated['MasaPengingat']]);
+            } else {
+                $validated['MasaPengingat'] = '-';
+            }
 
             // Handle file upload
             if ($request->hasFile('file_dokumen')) {
@@ -684,10 +871,14 @@ class DokLegalController extends Controller
             'TglPengingat' => $dokLegal->TglPengingat ? $dokLegal->TglPengingat->format('Y-m-d') : null
         ]);
     }
+
     public function view(DokLegal $dokLegal)
     {
+        Log::info('Memulai proses view dokumen', ['id' => $dokLegal->id, 'file' => $dokLegal->FileDok]);
+
         // Pastikan file ada
         if (!$dokLegal->FileDok) {
+            Log::warning('Percobaan view dokumen tanpa file', ['id' => $dokLegal->id]);
             abort(404, 'File tidak ditemukan');
         }
 
@@ -696,12 +887,22 @@ class DokLegalController extends Controller
 
         // Cek apakah file ada
         if (!file_exists($filePath)) {
+            Log::warning('File dokumen tidak ditemukan saat view', [
+                'id' => $dokLegal->id,
+                'path' => $filePath
+            ]);
             abort(404, 'File tidak ditemukan');
         }
 
         // Dapatkan informasi file
         $fileInfo = pathinfo($filePath);
         $extension = strtolower($fileInfo['extension']);
+
+        Log::info('Info file dokumen', [
+            'extension' => $extension,
+            'filename' => $fileInfo['filename'],
+            'basename' => $fileInfo['basename']
+        ]);
 
         // Tentukan content type berdasarkan ekstensi file
         $contentTypes = [
@@ -720,9 +921,11 @@ class DokLegalController extends Controller
         ];
 
         $contentType = $contentTypes[$extension] ?? 'application/octet-stream';
+        Log::info('Content type file', ['contentType' => $contentType]);
 
         // Untuk file yang dapat ditampilkan di browser (PDF, gambar, txt)
         if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'])) {
+            Log::info('Menampilkan file secara langsung di browser');
             return response()->file($filePath, [
                 'Content-Type' => $contentType,
                 'Content-Disposition' => 'inline; filename="' . $dokLegal->FileDok . '"'
@@ -735,6 +938,11 @@ class DokLegalController extends Controller
             $fileUrl = url('storage/uploads/dokumen/' . $dokLegal->FileDok);
             $googleViewerUrl = 'https://docs.google.com/viewer?url=' . urlencode($fileUrl) . '&embedded=true';
 
+            Log::info('Menampilkan file Office dengan Google Docs Viewer', [
+                'fileUrl' => $fileUrl,
+                'googleViewerUrl' => $googleViewerUrl
+            ]);
+
             return view('dokLegal.viewer', [
                 'dokLegal' => $dokLegal,
                 'viewerUrl' => $googleViewerUrl,
@@ -743,8 +951,10 @@ class DokLegalController extends Controller
         }
 
         // Jika file tidak dapat dipreview, redirect ke download
+        Log::info('File tidak dapat dipreview, redirect ke download');
         return redirect()->route('dokLegal.download', $dokLegal);
     }
+
     // Tambahkan method baru ke DokLegalController.php
     public function getDocumentStats()
     {
