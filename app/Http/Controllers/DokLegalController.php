@@ -188,12 +188,34 @@ class DokLegalController extends Controller
         }
 
         // Handle file upload
+        // Handle file upload
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $fileName = time() . '_' . $file->getClientOriginalName();
+            $originalFileName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            $fileType = $file->getClientMimeType();
+
+            // Upload file
             $file->storeAs('uploads/dokumen', $fileName, 'public');
             $validated['FileDok'] = $fileName;
+
+            // Log file upload
+            \Log::info('File dokumen baru diunggah', [
+                'user_id' => auth()->user()->id,
+                'user_name' => auth()->user()->name,
+                'dokumen_id' => $validated['IdKode'],
+                'no_reg_dok' => $validated['NoRegDok'],
+                'file_name' => $fileName,
+                'original_file_name' => $originalFileName,
+                'file_size' => $fileSize,
+                'file_type' => $fileType,
+                'upload_time' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
         }
+
 
         // Ambil data master berdasarkan ID
         $perusahaan = Perusahaan::findOrFail($request->perusahaan_id);
