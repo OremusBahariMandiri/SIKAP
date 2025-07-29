@@ -312,12 +312,12 @@
                         <button type="button" class="btn btn-success" id="exportExcel">
                             <i class="fas fa-file-excel me-2"></i> Ekspor ke Excel
                         </button>
-                        <button type="button" class="btn btn-danger" id="exportPdf">
+                        {{-- <button type="button" class="btn btn-danger" id="exportPdf">
                             <i class="fas fa-file-pdf me-2"></i> Ekspor ke PDF
                         </button>
                         <button type="button" class="btn btn-secondary" id="exportPrint">
                             <i class="fas fa-print me-2"></i> Print
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
             </div>

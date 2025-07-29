@@ -7,9 +7,17 @@
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <span class="fw-bold"><i class="fas fa-building me-2"></i>Manajemen Perusahaan</span>
-                        <a href="{{ route('perusahaan.create') }}" class="btn btn-light">
-                            <i class="fas fa-plus-circle me-1"></i> Tambah
-                        </a>
+                        <div>
+                            <button type="button" class="btn btn-light me-2" id="filterButton">
+                                <i class="fas fa-filter me-1"></i> Filter
+                            </button>
+                            <button type="button" class="btn btn-light me-2" id="exportButton">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                            <a href="{{ route('perusahaan.create') }}" class="btn btn-light">
+                                <i class="fas fa-plus-circle me-1"></i> Tambah
+                            </a>
+                        </div>
                     </div>
 
                     <div class="card-body">
@@ -92,6 +100,79 @@
         </div>
     </div>
 
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="filterModalLabel">
+                        <i class="fas fa-filter me-2"></i>Filter Perusahaan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="filterForm">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="filter_nama" class="form-label">Nama Perusahaan</label>
+                                    <select class="form-select" id="filter_nama">
+                                        <option value="">Semua Perusahaan</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_telepon" class="form-label">Telepon</label>
+                                    <select class="form-select" id="filter_telepon">
+                                        <option value="">Semua Telepon</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_email" class="form-label">Email</label>
+                                    <select class="form-select" id="filter_email">
+                                        <option value="">Semua Email</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_website" class="form-label">Website</label>
+                                    <select class="form-select" id="filter_website">
+                                        <option value="">Semua Website</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_tgl_berdiri" class="form-label">Tanggal Berdiri</label>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" id="filter_tgl_berdiri_from"
+                                            placeholder="Dari">
+                                        <span class="input-group-text">s/d</span>
+                                        <input type="date" class="form-control" id="filter_tgl_berdiri_to"
+                                            placeholder="Sampai">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="resetFilter">
+                        <i class="fas fa-undo me-1"></i>Reset Filter
+                    </button>
+                    <button type="button" class="btn btn-primary" id="applyFilter">
+                        <i class="fas fa-check me-1"></i>Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel"
         aria-hidden="true">
@@ -122,12 +203,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Export Options Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="exportModalLabel">
+                        <i class="fas fa-download me-2"></i>Ekspor Data
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success" id="exportExcel">
+                            <i class="fas fa-file-excel me-2"></i> Ekspor ke Excel
+                        </button>
+                        {{-- <button type="button" class="btn btn-danger" id="exportPdf">
+                            <i class="fas fa-file-pdf me-2"></i> Ekspor ke PDF
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="exportPrint">
+                            <i class="fas fa-print me-2"></i> Print
+                        </button> --}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Form for Export -->
+    <form id="exportForm" action="{{ route('perusahaan.export-excel') }}" method="POST" class="d-none">
+        @csrf
+        <input type="hidden" name="filter_nama" id="export_filter_nama">
+        <input type="hidden" name="filter_telepon" id="export_filter_telepon">
+        <input type="hidden" name="filter_email" id="export_filter_email">
+        <input type="hidden" name="filter_website" id="export_filter_website">
+        <input type="hidden" name="filter_tgl_berdiri_from" id="export_filter_tgl_berdiri_from">
+        <input type="hidden" name="filter_tgl_berdiri_to" id="export_filter_tgl_berdiri_to">
+    </form>
 @endsection
 
 @push('styles')
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
     <style>
         /* CSS dengan spesifisitas tinggi untuk DataTables */
         .perusahaanPage .dataTables_wrapper .dataTables_length,
@@ -217,6 +338,17 @@
         .perusahaanPage #perusahaanTable tbody tr.row-hover-active {
             animation: flashBorder 1s ease infinite;
         }
+
+        /* Highlight filter active state */
+        .filter-active {
+            background-color: #e8f4ff !important;
+            border-left: 3px solid #0d6efd !important;
+        }
+
+        /* Hidden buttons untuk export */
+        .dt-buttons {
+            display: none !important;
+        }
     </style>
 @endpush
 
@@ -226,6 +358,14 @@
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -258,18 +398,74 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
 
+            // Format tanggal untuk filter
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    // Tanggal berdiri filter
+                    let berdiriFrom = $('#filter_tgl_berdiri_from').val();
+                    let berdiriTo = $('#filter_tgl_berdiri_to').val();
+                    let berdiriDate = data[5] !== '-' ? moment(data[5], 'DD/MM/YYYY') : null;
+
+                    if (berdiriDate === null) {
+                        if (berdiriFrom === '' && berdiriTo === '') {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    if ((berdiriFrom === '' && berdiriTo === '') ||
+                        (berdiriFrom === '' && berdiriDate.isSameOrBefore(moment(berdiriTo))) ||
+                        (berdiriTo === '' && berdiriDate.isSameOrAfter(moment(berdiriFrom))) ||
+                        (berdiriDate.isBetween(moment(berdiriFrom), moment(berdiriTo), null, '[]'))) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
             // Initialize DataTable
             var table = $('#perusahaanTable').DataTable({
                 responsive: true,
                 language: indonesianLanguage,
                 columnDefs: [{
-                    responsivePriority: 1,
-                    targets: [0, 1, 6] // Fixed index to match table columns
-                },
-                {
-                    orderable: false,
-                    targets: [6] // Fixed index for actions column
-                }],
+                        responsivePriority: 1,
+                        targets: [0, 1, 6] // No, Nama Perusahaan, Aksi
+                    },
+                    {
+                        responsivePriority: 2,
+                        targets: [2, 3] // Telepon, Email
+                    },
+                    {
+                        orderable: false,
+                        targets: [6] // Aksi
+                    }
+                ],
+                buttons: [{
+                        extend: 'excel',
+                        text: 'Excel',
+                        className: 'btn btn-sm btn-success d-none excel-export-btn',
+                        exportOptions: {
+                            columns: ':not(:last-child)'
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        text: 'PDF',
+                        className: 'btn btn-sm btn-danger d-none pdf-export-btn',
+                        exportOptions: {
+                            columns: ':not(:last-child)'
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: 'Print',
+                        className: 'btn btn-sm btn-secondary d-none print-export-btn',
+                        exportOptions: {
+                            columns: ':not(:last-child)'
+                        }
+                    }
+                ],
                 initComplete: function() {
                     // Force style search input box
                     $('.dataTables_filter input').addClass('form-control');
@@ -277,7 +473,251 @@
                         'width': '200px',
                         'max-width': '100%'
                     });
+
+                    // Populasi dropdown filter dengan data dari tabel
+                    populateFilterDropdowns(this.api());
                 }
+            });
+
+            // Fungsi untuk mengisi dropdown filter dengan data dari tabel
+            function populateFilterDropdowns(tableApi) {
+                // Inisialisasi Set untuk menyimpan nilai unik (Set otomatis menghilangkan duplikat)
+                const namaSet = new Set();
+                const teleponSet = new Set();
+                const emailSet = new Set();
+                const websiteSet = new Set();
+
+                // Fungsi helper untuk memeriksa apakah nilai valid (bukan kosong, "-", atau tanda lain yang menunjukkan data kosong)
+                function isValidValue(value) {
+                    if (!value) return false;
+
+                    // Hapus whitespace
+                    const trimmed = value.toString().trim();
+
+                    // Cek jika string kosong, tanda "-", atau teks "tidak ada", dll
+                    return trimmed !== '' &&
+                           trimmed !== '-' &&
+                           trimmed.toLowerCase() !== 'tidak ada' &&
+                           trimmed.toLowerCase() !== 'n/a' &&
+                           trimmed.toLowerCase() !== 'null' &&
+                           !trimmed.includes('text-muted');
+                }
+
+                // Kumpulkan semua nilai unik dari SELURUH data (bukan hanya yang ditampilkan)
+                // Kolom indeks: 1 = Nama, 2 = Telepon, 3 = Email, 4 = Website
+                tableApi.column(1).data().each(function(value) {
+                    if (isValidValue(value)) namaSet.add(value.trim());
+                });
+
+                tableApi.column(2).data().each(function(value) {
+                    if (isValidValue(value)) teleponSet.add(value.trim());
+                });
+
+                tableApi.column(3).data().each(function(value) {
+                    if (isValidValue(value)) emailSet.add(value.trim());
+                });
+
+                tableApi.column(4).data().each(function(value) {
+                    // Extract only the website URL (remove icon and formatting)
+                    let website = value;
+                    if (value.includes('</i>')) {
+                        website = $(value).text().trim();
+                    }
+                    // Hapus "span" HTML jika ada
+                    if (website.includes('<span')) {
+                        website = '-'; // Marking as invalid
+                    }
+
+                    if (isValidValue(website)) {
+                        websiteSet.add(website.trim());
+                    }
+                });
+
+                // Konversi Set ke Array dan urutkan
+                const namaValues = Array.from(namaSet).sort();
+                const teleponValues = Array.from(teleponSet).sort();
+                const emailValues = Array.from(emailSet).sort();
+                const websiteValues = Array.from(websiteSet).sort();
+
+                // Isi dropdown Nama Perusahaan
+                const namaDropdown = $('#filter_nama');
+                namaValues.forEach(function(value) {
+                    namaDropdown.append(
+                        $('<option>', {
+                            value: value,
+                            text: value
+                        })
+                    );
+                });
+
+                // Isi dropdown Telepon
+                const teleponDropdown = $('#filter_telepon');
+                teleponValues.forEach(function(value) {
+                    teleponDropdown.append(
+                        $('<option>', {
+                            value: value,
+                            text: value
+                        })
+                    );
+                });
+
+                // Isi dropdown Email
+                const emailDropdown = $('#filter_email');
+                emailValues.forEach(function(value) {
+                    emailDropdown.append(
+                        $('<option>', {
+                            value: value,
+                            text: value
+                        })
+                    );
+                });
+
+                // Isi dropdown Website (hanya jika ada valid values)
+                if (websiteValues.length > 0) {
+                    const websiteDropdown = $('#filter_website');
+                    websiteValues.forEach(function(value) {
+                        websiteDropdown.append(
+                            $('<option>', {
+                                value: value,
+                                text: value
+                            })
+                        );
+                    });
+                } else {
+                    // Sembunyikan filter website jika tidak ada nilai valid
+                    $('#filter_website').closest('.mb-3').hide();
+                }
+
+                // Sembunyikan dropdown yang tidak memiliki nilai
+                if (namaValues.length === 0) $('#filter_nama').closest('.mb-3').hide();
+                if (teleponValues.length === 0) $('#filter_telepon').closest('.mb-3').hide();
+                if (emailValues.length === 0) $('#filter_email').closest('.mb-3').hide();
+
+                // Log untuk debugging
+                console.log('Nama values loaded:', namaValues.length);
+                console.log('Telepon values loaded:', teleponValues.length);
+                console.log('Email values loaded:', emailValues.length);
+                console.log('Website values loaded:', websiteValues.length);
+            }
+
+            // Event for filter and export buttons
+            $('#filterButton').on('click', function() {
+                $('#filterModal').modal('show');
+            });
+
+            $('#exportButton').on('click', function() {
+                $('#exportModal').modal('show');
+            });
+
+            // Apply Filter event handler
+            $('#applyFilter').on('click', function() {
+                // Reset semua filter terlebih dahulu
+                table.columns().search('').draw();
+
+                // Hapus custom filter yang mungkin masih ada
+                while ($.fn.dataTable.ext.search.length > 1) { // Biarkan filter tanggal
+                    $.fn.dataTable.ext.search.pop();
+                }
+
+                // Fungsi untuk menambahkan filter kolom dengan exact match
+                function addColumnFilter(columnIdx, value) {
+                    if (value) {
+                        table.column(columnIdx).search('^' + $.fn.dataTable.util.escapeRegex(value) + '$', true, false);
+                    }
+                }
+
+                // Menerapkan filter dari dropdown
+                addColumnFilter(1, $('#filter_nama').val()); // Nama Perusahaan
+                addColumnFilter(2, $('#filter_telepon').val()); // Telepon
+                addColumnFilter(3, $('#filter_email').val()); // Email
+
+                // Website perlu penanganan khusus karena format HTML
+                const websiteValue = $('#filter_website').val();
+                if (websiteValue) {
+                    // Custom filter function untuk website
+                    $.fn.dataTable.ext.search.push(
+                        function(settings, data, dataIndex) {
+                            // Kolom website
+                            const website = data[4];
+
+                            // Cek jika website HTML (dengan tag) atau teks biasa
+                            if (website.includes('<')) {
+                                // Extract teks dari HTML
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = website;
+                                const websiteText = tempDiv.textContent || tempDiv.innerText || '';
+                                return websiteText.trim() === websiteValue;
+                            } else {
+                                // Bandingkan teks biasa
+                                return website.trim() === websiteValue;
+                            }
+                        }
+                    );
+                }
+
+                // Refresh table untuk menerapkan semua filter
+                table.draw();
+
+                $('#filterModal').modal('hide');
+
+                // Highlight filter button jika ada filter aktif
+                highlightFilterButton();
+            });
+
+            // Reset Filter event handler
+            $('#resetFilter').on('click', function() {
+                // Reset form fields
+                $('#filterForm')[0].reset();
+
+                // Remove active class from filter button
+                $('#filterButton').removeClass('filter-active');
+
+                // Reset table filters
+                table.search('').columns().search('').draw();
+
+                // Hapus custom filter
+                while ($.fn.dataTable.ext.search.length > 1) { // Biarkan filter tanggal
+                    $.fn.dataTable.ext.search.pop();
+                }
+            });
+
+            // Highlight filter button if any filter is active
+            function highlightFilterButton() {
+                if ($('#filter_nama').val() ||
+                    $('#filter_telepon').val() ||
+                    $('#filter_email').val() ||
+                    $('#filter_website').val() ||
+                    $('#filter_tgl_berdiri_from').val() ||
+                    $('#filter_tgl_berdiri_to').val()) {
+                    $('#filterButton').addClass('filter-active');
+                } else {
+                    $('#filterButton').removeClass('filter-active');
+                }
+            }
+
+            // Export buttons
+            $('#exportExcel').on('click', function() {
+                // Copy current filter values to export form
+                $('#export_filter_nama').val($('#filter_nama').val());
+                $('#export_filter_telepon').val($('#filter_telepon').val());
+                $('#export_filter_email').val($('#filter_email').val());
+                $('#export_filter_website').val($('#filter_website').val());
+                $('#export_filter_tgl_berdiri_from').val($('#filter_tgl_berdiri_from').val());
+                $('#export_filter_tgl_berdiri_to').val($('#filter_tgl_berdiri_to').val());
+
+                // Submit export form
+                $('#exportForm').submit();
+                $('#exportModal').modal('hide');
+            });
+
+            $('#exportPdf').on('click', function() {
+                $('.pdf-export-btn').trigger('click');
+                $('#exportModal').modal('hide');
+            });
+
+            $('#exportPrint').on('click', function() {
+                $('.print-export-btn').trigger('click');
+                $('#exportModal').modal('hide');
             });
 
             // Handle Delete Confirmation
