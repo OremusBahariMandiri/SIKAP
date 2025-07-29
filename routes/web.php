@@ -195,7 +195,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/debug/users/create', [UserController::class, 'create'])->name('debug.users.create');
     // Tambahkan route berikut di routes/web.php
     Route::post('/dokLegal/export-excel', [App\Http\Controllers\DokLegalController::class, 'exportExcel'])->name('dokLegal.export-excel');
+    Route::post('/perusahaan/export-excel', [PerusahaanController::class, 'exportExcel'])->name('perusahaan.export-excel');
+
 });
+
+
 
 // Auth routes (login, logout, reset password)
 require __DIR__ . '/auth.php';

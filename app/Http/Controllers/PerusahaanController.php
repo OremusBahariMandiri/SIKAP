@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Exports\PerusahaanExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PerusahaanController extends Controller
 {
@@ -129,5 +131,56 @@ class PerusahaanController extends Controller
 
         Alert::success('Berhasil', 'Data Perusahaan Berhasil Dihapus.');
         return redirect()->route('perusahaan.index');
+    }
+    public function exportExcel(Request $request)
+    {
+        // Ambil parameter filter
+        $filters = [
+            'nama' => $request->filter_nama,
+            'telepon' => $request->filter_telepon,
+            'email' => $request->filter_email,
+            'website' => $request->filter_website,
+            'tgl_berdiri_from' => $request->filter_tgl_berdiri_from,
+            'tgl_berdiri_to' => $request->filter_tgl_berdiri_to,
+        ];
+
+        // Query data berdasarkan filter
+        $query = Perusahaan::query();
+
+        // Filter Nama Perusahaan
+        if ($request->filled('filter_nama')) {
+            $query->where('NamaPrsh', 'like', '%' . $request->filter_nama . '%');
+        }
+
+        // Filter Telepon
+        if ($request->filled('filter_telepon')) {
+            $query->where('TelpPrsh', 'like', '%' . $request->filter_telepon . '%');
+        }
+
+        // Filter Email
+        if ($request->filled('filter_email')) {
+            $query->where('EmailPrsh', 'like', '%' . $request->filter_email . '%');
+        }
+
+        // Filter Website
+        if ($request->filled('filter_website')) {
+            $query->where('WebPrsh', 'like', '%' . $request->filter_website . '%');
+        }
+
+        // Filter Tanggal Berdiri
+        if ($request->filled('filter_tgl_berdiri_from')) {
+            $query->whereDate('TglBerdiri', '>=', $request->filter_tgl_berdiri_from);
+        }
+        if ($request->filled('filter_tgl_berdiri_to')) {
+            $query->whereDate('TglBerdiri', '<=', $request->filter_tgl_berdiri_to);
+        }
+
+        $perusahaans = $query->get();
+
+        // Format tanggal untuk nama file
+        $currentDate = now()->format('d-m-Y_H-i-s');
+        $fileName = 'Daftar_Perusahaan_' . $currentDate . '.xlsx';
+
+        return Excel::download(new PerusahaanExport($perusahaans, $filters), $fileName);
     }
 }
