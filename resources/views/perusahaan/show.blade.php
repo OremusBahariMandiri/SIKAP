@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span class="fw-bold"><i class="fas fa-building me-2"></i>Detail Perusahaan</span>
@@ -27,6 +27,16 @@
                                     <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Perusahaan</h5>
                                 </div>
                                 <div class="card-body">
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">ID Kode</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                                <div class="form-control">{{ $perusahaan->IdKode }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="info-group mb-3">
                                         <label class="info-label fw-bold">Nama Perusahaan</label>
                                         <div class="info-value">
@@ -143,12 +153,136 @@
                                         </div>
                                     </div>
 
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Information -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-info">
+                                <div class="card-header bg-info bg-opacity-25 text-dark">
+                                    <h5 class="mb-0"><i class="fas fa-industry me-2"></i>Informasi Usaha</h5>
+                                </div>
+                                <div class="card-body">
                                     <div class="info-group mb-3">
-                                        <label class="info-label fw-bold">Dibuat pada</label>
+                                        <label class="info-label fw-bold">Bidang Usaha</label>
                                         <div class="info-value">
                                             <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
-                                                <div class="form-control">{{ $perusahaan->created_at->format('d/m/Y H:i') }}</div>
+                                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->BidangUsh)
+                                                        {{ $perusahaan->BidangUsh }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Izin Usaha</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-certificate"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->IzinUsh)
+                                                        {{ $perusahaan->IzinUsh }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Golongan Usaha</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-layer-group"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->GolonganUsh)
+                                                        <span class="badge bg-primary">{{ $perusahaan->GolonganUsh }}</span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Management Information -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-info">
+                                <div class="card-header bg-info bg-opacity-25 text-dark">
+                                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Informasi Manajemen</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Direktur Utama</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->DirekturUtm)
+                                                        {{ $perusahaan->DirekturUtm }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Direktur</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->Direktur)
+                                                        {{ $perusahaan->Direktur }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Komisaris Utama</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->KomisarisUtm)
+                                                        {{ $perusahaan->KomisarisUtm }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="info-group mb-3">
+                                        <label class="info-label fw-bold">Komisaris</label>
+                                        <div class="info-value">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+                                                <div class="form-control">
+                                                    @if ($perusahaan->Komisaris)
+                                                        {{ $perusahaan->Komisaris }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -160,8 +294,8 @@
                     <!-- Dokumen Legal Section -->
                     {{-- <div class="row mt-4">
                         <div class="col-12">
-                            <div class="card border-warning">
-                                <div class="card-header bg-warning bg-opacity-25 text-dark">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger bg-opacity-25 text-dark">
                                     <h5 class="mb-0"><i class="fas fa-file-contract me-2"></i>Dokumen Legal Terkait</h5>
                                 </div>
                                 <div class="card-body">

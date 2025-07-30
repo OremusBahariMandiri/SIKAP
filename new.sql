@@ -56,3 +56,13 @@ FOREIGN KEY (created_by) REFERENCES a01dmuser(id);
 ALTER TABLE b01doklegal
 ADD CONSTRAINT fk_doklegal_updatedby
 FOREIGN KEY (updated_by) REFERENCES a01dmuser(id);
+
+-- perusahaan update sql 30/07/25 (unrelease)
+ALTER TABLE a03dmperusahaan
+ADD COLUMN BidangUsh VARCHAR(100),
+ADD COLUMN IzinUsh VARCHAR(100),
+ADD COLUMN GolonganUsh VARCHAR(100),
+ADD COLUMN DirekturUtm VARCHAR(100),
+ADD COLUMN Direktur VARCHAR(100),
+ADD COLUMN KomisarisUtm VARCHAR(100),
+ADD COLUMN Komisaris VARCHAR(100)

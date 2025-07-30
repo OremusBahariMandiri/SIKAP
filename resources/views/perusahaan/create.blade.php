@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span class="fw-bold"><i class="fas fa-building me-2"></i>Tambah Perusahaan</span>
@@ -124,6 +124,101 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Business Information -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info bg-opacity-25 text-dark">
+                                        <h5 class="mb-0"><i class="fas fa-industry me-2"></i>Informasi Usaha</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="BidangUsh" class="form-label fw-bold">Bidang Usaha</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                                <input type="text" class="form-control" id="BidangUsh" name="BidangUsh"
+                                                    value="{{ old('BidangUsh') }}" placeholder="Contoh: Teknologi Informasi">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="IzinUsh" class="form-label fw-bold">Izin Usaha</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-certificate"></i></span>
+                                                <input type="text" class="form-control" id="IzinUsh" name="IzinUsh"
+                                                    value="{{ old('IzinUsh') }}" placeholder="Contoh: SIUP, TDP, NIB">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="GolonganUsh" class="form-label fw-bold">Golongan Usaha</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-layer-group"></i></span>
+                                                <select class="form-control" id="GolonganUsh" name="GolonganUsh">
+                                                    <option value="">Pilih Golongan Usaha</option>
+                                                    <option value="Mikro" {{ old('GolonganUsh') == 'Mikro' ? 'selected' : '' }}>Mikro</option>
+                                                    <option value="Kecil" {{ old('GolonganUsh') == 'Kecil' ? 'selected' : '' }}>Kecil</option>
+                                                    <option value="Menengah" {{ old('GolonganUsh') == 'Menengah' ? 'selected' : '' }}>Menengah</option>
+                                                    <option value="Besar" {{ old('GolonganUsh') == 'Besar' ? 'selected' : '' }}>Besar</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Management Information -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info bg-opacity-25 text-dark">
+                                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Informasi Manajemen</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="DirekturUtm" class="form-label fw-bold">Direktur Utama</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                <input type="text" class="form-control" id="DirekturUtm" name="DirekturUtm"
+                                                    value="{{ old('DirekturUtm') }}" placeholder="">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="Direktur" class="form-label fw-bold">Direktur</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                <input type="text" class="form-control" id="Direktur" name="Direktur"
+                                                    value="{{ old('Direktur') }}" placeholder="">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="KomisarisUtm" class="form-label fw-bold">Komisaris Utama</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+                                                <input type="text" class="form-control" id="KomisarisUtm" name="KomisarisUtm"
+                                                    value="{{ old('KomisarisUtm') }}" placeholder="">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="Komisaris" class="form-label fw-bold">Komisaris</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+                                                <input type="text" class="form-control" id="Komisaris" name="Komisaris"
+                                                    value="{{ old('Komisaris') }}" placeholder="">
+                                            </div>
+                                            <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-grid gap-2 col-md-4 mx-auto mt-4">
@@ -206,11 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Fix for second telephone and email fields
-    // These were marked as required in the original form but are labeled optional
-    document.getElementById('TelpPrsh2').removeAttribute('required');
-    document.getElementById('EmailPrsh2').removeAttribute('required');
 });
 </script>
 @endpush
