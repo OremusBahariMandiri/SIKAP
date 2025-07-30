@@ -69,7 +69,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-globe"></i></span>
                                                 <input type="url" class="form-control" id="WebPrsh" name="WebPrsh"
-                                                    value="{{ old('WebPrsh') }}" placeholder="https://example.com">
+                                                    value="{{ old('WebPrsh') }}">
                                             </div>
                                             <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Format: https://alamat-website (Opsional)</div>
                                         </div>
@@ -137,7 +137,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
                                                 <input type="text" class="form-control" id="BidangUsh" name="BidangUsh"
-                                                    value="{{ old('BidangUsh') }}" placeholder="Contoh: Teknologi Informasi">
+                                                    value="{{ old('BidangUsh') }}" >
                                             </div>
                                             <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
                                         </div>
@@ -147,7 +147,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-certificate"></i></span>
                                                 <input type="text" class="form-control" id="IzinUsh" name="IzinUsh"
-                                                    value="{{ old('IzinUsh') }}" placeholder="Contoh: SIUP, TDP, NIB">
+                                                    value="{{ old('IzinUsh') }}">
                                             </div>
                                             <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>
                                         </div>
@@ -158,10 +158,10 @@
                                                 <span class="input-group-text"><i class="fas fa-layer-group"></i></span>
                                                 <select class="form-control" id="GolonganUsh" name="GolonganUsh">
                                                     <option value="">Pilih Golongan Usaha</option>
-                                                    <option value="Mikro" {{ old('GolonganUsh') == 'Mikro' ? 'selected' : '' }}>Mikro</option>
-                                                    <option value="Kecil" {{ old('GolonganUsh') == 'Kecil' ? 'selected' : '' }}>Kecil</option>
-                                                    <option value="Menengah" {{ old('GolonganUsh') == 'Menengah' ? 'selected' : '' }}>Menengah</option>
-                                                    <option value="Besar" {{ old('GolonganUsh') == 'Besar' ? 'selected' : '' }}>Besar</option>
+                                                    <option value="MIKRO" {{ old('GolonganUsh') == 'MIKRO' ? 'selected' : '' }}>MIKRO</option>
+                                                    <option value="KECIL" {{ old('GolonganUsh') == 'KECILKECIL' ? 'selected' : '' }}>KECIL</option>
+                                                    <option value="MENENGAH" {{ old('GolonganUsh') == 'MENENGAHMENENGAH' ? 'selected' : '' }}>MENENGAH</option>
+                                                    <option value="BESARBESAR" {{ old('GolonganUsh') == 'BESAR' ? 'selected' : '' }}>BESAR</option>
                                                 </select>
                                             </div>
                                             <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>

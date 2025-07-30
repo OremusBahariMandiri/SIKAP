@@ -4,6 +4,13 @@
         <tr>
             <th>No</th>
             <th>Nama Perusahaan</th>
+            <th>Bidang Usaha</th>
+            <th>Izin Usaha</th>
+            <th>Golongan Usaha</th>
+            <th>Direktur Utama</th>
+            <th>Direktur</th>
+            <th>Komisaris Utama</th>
+            <th>Komisaris</th>
             <th>Telepon</th>
             <th>Email</th>
             <th>Website</th>
@@ -16,6 +23,13 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $perusahaan->NamaPrsh }}</td>
+                <td>{{ $perusahaan->BidangUsh ?: '-' }}</td>
+                <td>{{ $perusahaan->IzinUsh ?: '-' }}</td>
+                <td>{{ $perusahaan->GolonganUsh ?: '-' }}</td>
+                <td>{{ $perusahaan->DirekturUtm ?: '-' }}</td>
+                <td>{{ $perusahaan->Direktur ?: '-' }}</td>
+                <td>{{ $perusahaan->KomisarisUtm ?: '-' }}</td>
+                <td>{{ $perusahaan->Komisaris ?: '-' }}</td>
                 <td>{{ $perusahaan->TelpPrsh }}</td>
                 <td>{{ $perusahaan->EmailPrsh }}</td>
                 <td>{{ $perusahaan->WebPrsh ?: '-' }}</td>
@@ -41,6 +55,48 @@
     <tr>
         <td>Nama Perusahaan</td>
         <td>{{ $filter['nama'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['bidang']) && $filter['bidang'])
+    <tr>
+        <td>Bidang Usaha</td>
+        <td>{{ $filter['bidang'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['izin']) && $filter['izin'])
+    <tr>
+        <td>Izin Usaha</td>
+        <td>{{ $filter['izin'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['golongan']) && $filter['golongan'])
+    <tr>
+        <td>Golongan Usaha</td>
+        <td>{{ $filter['golongan'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['direktur_utama']) && $filter['direktur_utama'])
+    <tr>
+        <td>Direktur Utama</td>
+        <td>{{ $filter['direktur_utama'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['direktur']) && $filter['direktur'])
+    <tr>
+        <td>Direktur</td>
+        <td>{{ $filter['direktur'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['komisaris_utama']) && $filter['komisaris_utama'])
+    <tr>
+        <td>Komisaris Utama</td>
+        <td>{{ $filter['komisaris_utama'] }}</td>
+    </tr>
+    @endif
+    @if(isset($filter['komisaris']) && $filter['komisaris'])
+    <tr>
+        <td>Komisaris</td>
+        <td>{{ $filter['komisaris'] }}</td>
     </tr>
     @endif
     @if(isset($filter['telepon']) && $filter['telepon'])

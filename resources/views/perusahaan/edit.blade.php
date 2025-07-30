@@ -159,10 +159,10 @@
                                                 <span class="input-group-text"><i class="fas fa-layer-group"></i></span>
                                                 <select class="form-control" id="GolonganUsh" name="GolonganUsh">
                                                     <option value="">Pilih Golongan Usaha</option>
-                                                    <option value="Mikro" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'Mikro' ? 'selected' : '' }}>Mikro</option>
-                                                    <option value="Kecil" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'Kecil' ? 'selected' : '' }}>Kecil</option>
-                                                    <option value="Menengah" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'Menengah' ? 'selected' : '' }}>Menengah</option>
-                                                    <option value="Besar" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'Besar' ? 'selected' : '' }}>Besar</option>
+                                                    <option value="MIKRO" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'MIKRO' ? 'selected' : '' }}>MIKRO</option>
+                                                    <option value="KECIL" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'KECIL' ? 'selected' : '' }}>KECIL</option>
+                                                    <option value="MENENGAH" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'MENENGAH' ? 'selected' : '' }}>MENENGAH</option>
+                                                    <option value="BESAR" {{ old('GolonganUsh', $perusahaan->GolonganUsh) == 'BESAR' ? 'selected' : '' }}>BESAR</option>
                                                 </select>
                                             </div>
                                             <div class="form-text text-muted"><i class="fas fa-info-circle me-1"></i>Opsional</div>

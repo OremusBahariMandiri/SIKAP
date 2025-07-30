@@ -43,7 +43,7 @@ class PerusahaanExport implements FromView, WithTitle, WithStyles, ShouldAutoSiz
             1 => ['font' => ['bold' => true, 'size' => 12]],
 
             // Add borders to all cells
-            'A1:G' . (count($this->perusahaans) + 1) => [
+            'A1:Q' . (count($this->perusahaans) + 1) => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
@@ -58,16 +58,16 @@ class PerusahaanExport implements FromView, WithTitle, WithStyles, ShouldAutoSiz
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 // Set background color for header row
-                $event->sheet->getStyle('A1:G1')->getFill()
+                $event->sheet->getStyle('A1:Q1')->getFill()
                     ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                     ->getStartColor()->setRGB('4a6fdc');
 
                 // Set text color for header row
-                $event->sheet->getStyle('A1:G1')->getFont()->getColor()
+                $event->sheet->getStyle('A1:Q1')->getFont()->getColor()
                     ->setRGB('FFFFFF');
 
                 // Add filter buttons to headers
-                $event->sheet->setAutoFilter('A1:G1');
+                $event->sheet->setAutoFilter('A1:Q1');
 
                 // Freeze the first row
                 $event->sheet->freezePane('A2');
@@ -86,8 +86,18 @@ class PerusahaanExport implements FromView, WithTitle, WithStyles, ShouldAutoSiz
                     // Add filter details
                     $filterItems = [
                         'nama' => 'Nama Perusahaan',
+                        'bidang' => 'Bidang Usaha',
+                        'izin' => 'Izin Usaha',
+                        'golongan' => 'Golongan Usaha',
+                        'direktur_utama' => 'Direktur Utama',
+                        'direktur' => 'Direktur',
+                        'komisaris_utama' => 'Komisaris Utama',
+                        'komisaris' => 'Komisaris',
+                        'alamat' => 'Alamat',
                         'telepon' => 'Telepon',
+                        'telepon2' => 'Telepon 2',
                         'email' => 'Email',
+                        'email2' => 'Email 2',
                         'website' => 'Website',
                         'tgl_berdiri_from' => 'Tanggal Berdiri (Dari)',
                         'tgl_berdiri_to' => 'Tanggal Berdiri (Sampai)'
