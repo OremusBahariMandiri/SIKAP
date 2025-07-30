@@ -151,71 +151,93 @@ class PerusahaanController extends Controller
 
     public function exportExcel(Request $request)
     {
-        // Ambil parameter filter
-        $filters = [
-            'nama' => $request->filter_nama,
-            'telepon' => $request->filter_telepon,
-            'email' => $request->filter_email,
-            'website' => $request->filter_website,
-            'tgl_berdiri_from' => $request->filter_tgl_berdiri_from,
-            'tgl_berdiri_to' => $request->filter_tgl_berdiri_to,
-            'bidang_usaha' => $request->filter_bidang_usaha,
-            'golongan_usaha' => $request->filter_golongan_usaha,
-        ];
-
-        // Query data berdasarkan filter
+        // Filter berdasarkan parameter yang diterima dari form
         $query = Perusahaan::query();
+
+        // Membuat array untuk menyimpan filter yang diterapkan
+        $appliedFilters = [];
 
         // Filter Nama Perusahaan
         if ($request->filled('filter_nama')) {
-            $query->where('NamaPrsh', 'like', '%' . $request->filter_nama . '%');
+            $query->where('NamaPrsh', $request->filter_nama);
+            $appliedFilters['nama'] = $request->filter_nama;
+        }
+
+        // Filter Bidang Usaha
+        if ($request->filled('filter_bidang')) {
+            $query->where('BidangUsh', $request->filter_bidang);
+            $appliedFilters['bidang'] = $request->filter_bidang;
+        }
+
+        // Filter Izin Usaha
+        if ($request->filled('filter_izin')) {
+            $query->where('IzinUsh', $request->filter_izin);
+            $appliedFilters['izin'] = $request->filter_izin;
+        }
+
+        // Filter Golongan Usaha
+        if ($request->filled('filter_golongan')) {
+            $query->where('GolonganUsh', $request->filter_golongan);
+            $appliedFilters['golongan'] = $request->filter_golongan;
+        }
+
+        // Filter Direktur Utama
+        if ($request->filled('filter_direktur_utama')) {
+            $query->where('DirekturUtm', $request->filter_direktur_utama);
+            $appliedFilters['direktur_utama'] = $request->filter_direktur_utama;
+        }
+
+        // Filter Direktur
+        if ($request->filled('filter_direktur')) {
+            $query->where('Direktur', $request->filter_direktur);
+            $appliedFilters['direktur'] = $request->filter_direktur;
+        }
+
+        // Filter Komisaris Utama
+        if ($request->filled('filter_komisaris_utama')) {
+            $query->where('KomisarisUtm', $request->filter_komisaris_utama);
+            $appliedFilters['komisaris_utama'] = $request->filter_komisaris_utama;
+        }
+
+        // Filter Komisaris
+        if ($request->filled('filter_komisaris')) {
+            $query->where('Komisaris', $request->filter_komisaris);
+            $appliedFilters['komisaris'] = $request->filter_komisaris;
         }
 
         // Filter Telepon
         if ($request->filled('filter_telepon')) {
-            $query->where(function($q) use ($request) {
-                $q->where('TelpPrsh', 'like', '%' . $request->filter_telepon . '%')
-                  ->orWhere('TelpPrsh2', 'like', '%' . $request->filter_telepon . '%');
-            });
+            $query->where('TelpPrsh', $request->filter_telepon);
+            $appliedFilters['telepon'] = $request->filter_telepon;
         }
 
         // Filter Email
         if ($request->filled('filter_email')) {
-            $query->where(function($q) use ($request) {
-                $q->where('EmailPrsh', 'like', '%' . $request->filter_email . '%')
-                  ->orWhere('EmailPrsh2', 'like', '%' . $request->filter_email . '%');
-            });
+            $query->where('EmailPrsh', $request->filter_email);
+            $appliedFilters['email'] = $request->filter_email;
         }
 
         // Filter Website
         if ($request->filled('filter_website')) {
-            $query->where('WebPrsh', 'like', '%' . $request->filter_website . '%');
-        }
-
-        // Filter Bidang Usaha
-        if ($request->filled('filter_bidang_usaha')) {
-            $query->where('BidangUsh', 'like', '%' . $request->filter_bidang_usaha . '%');
-        }
-
-        // Filter Golongan Usaha
-        if ($request->filled('filter_golongan_usaha')) {
-            $query->where('GolonganUsh', 'like', '%' . $request->filter_golongan_usaha . '%');
+            $query->where('WebPrsh', $request->filter_website);
+            $appliedFilters['website'] = $request->filter_website;
         }
 
         // Filter Tanggal Berdiri
         if ($request->filled('filter_tgl_berdiri_from')) {
             $query->whereDate('TglBerdiri', '>=', $request->filter_tgl_berdiri_from);
+            $appliedFilters['tgl_berdiri_from'] = $request->filter_tgl_berdiri_from;
         }
+
         if ($request->filled('filter_tgl_berdiri_to')) {
             $query->whereDate('TglBerdiri', '<=', $request->filter_tgl_berdiri_to);
+            $appliedFilters['tgl_berdiri_to'] = $request->filter_tgl_berdiri_to;
         }
 
+        // Ambil data berdasarkan filter
         $perusahaans = $query->get();
 
-        // Format tanggal untuk nama file
-        $currentDate = now()->format('d-m-Y_H-i-s');
-        $fileName = 'Daftar_Perusahaan_' . $currentDate . '.xlsx';
-
-        return Excel::download(new PerusahaanExport($perusahaans, $filters), $fileName);
+        // Buat file Excel dengan data yang sudah difilter
+        return Excel::download(new PerusahaanExport($perusahaans, $appliedFilters), 'data_perusahaan.xlsx');
     }
 }

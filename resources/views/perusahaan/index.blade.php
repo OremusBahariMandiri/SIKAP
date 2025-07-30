@@ -128,11 +128,68 @@
                 <div class="modal-body">
                     <form id="filterForm">
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="filter_nama" class="form-label">Nama Perusahaan</label>
                                     <select class="form-select" id="filter_nama">
                                         <option value="">Semua Perusahaan</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_bidang" class="form-label">Bidang Usaha</label>
+                                    <select class="form-select" id="filter_bidang">
+                                        <option value="">Semua Bidang Usaha</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_izin" class="form-label">Izin Usaha</label>
+                                    <select class="form-select" id="filter_izin">
+                                        <option value="">Semua Izin Usaha</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_golongan" class="form-label">Golongan Usaha</label>
+                                    <select class="form-select" id="filter_golongan">
+                                        <option value="">Semua Golongan Usaha</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_direktur_utama" class="form-label">Direktur Utama</label>
+                                    <select class="form-select" id="filter_direktur_utama">
+                                        <option value="">Semua Direktur Utama</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_direktur" class="form-label">Direktur</label>
+                                    <select class="form-select" id="filter_direktur">
+                                        <option value="">Semua Direktur</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="filter_komisaris_utama" class="form-label">Komisaris Utama</label>
+                                    <select class="form-select" id="filter_komisaris_utama">
+                                        <option value="">Semua Komisaris Utama</option>
+                                        <!-- Akan diisi secara dinamis dengan JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="filter_komisaris" class="form-label">Komisaris</label>
+                                    <select class="form-select" id="filter_komisaris">
+                                        <option value="">Semua Komisaris</option>
                                         <!-- Akan diisi secara dinamis dengan JavaScript -->
                                     </select>
                                 </div>
@@ -250,6 +307,13 @@
     <form id="exportForm" action="{{ route('perusahaan.export-excel') }}" method="POST" class="d-none">
         @csrf
         <input type="hidden" name="filter_nama" id="export_filter_nama">
+        <input type="hidden" name="filter_bidang" id="export_filter_bidang">
+        <input type="hidden" name="filter_izin" id="export_filter_izin">
+        <input type="hidden" name="filter_golongan" id="export_filter_golongan">
+        <input type="hidden" name="filter_direktur_utama" id="export_filter_direktur_utama">
+        <input type="hidden" name="filter_direktur" id="export_filter_direktur">
+        <input type="hidden" name="filter_komisaris_utama" id="export_filter_komisaris_utama">
+        <input type="hidden" name="filter_komisaris" id="export_filter_komisaris">
         <input type="hidden" name="filter_telepon" id="export_filter_telepon">
         <input type="hidden" name="filter_email" id="export_filter_email">
         <input type="hidden" name="filter_website" id="export_filter_website">
@@ -415,10 +479,10 @@
             // Format tanggal untuk filter
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
-                    // Tanggal berdiri filter
+                    // Tanggal berdiri filter (kolom 12)
                     let berdiriFrom = $('#filter_tgl_berdiri_from').val();
                     let berdiriTo = $('#filter_tgl_berdiri_to').val();
-                    let berdiriDate = data[5] !== '-' ? moment(data[5], 'DD/MM/YYYY') : null;
+                    let berdiriDate = data[12] !== '-' ? moment(data[12], 'DD/MM/YYYY') : null;
 
                     if (berdiriDate === null) {
                         if (berdiriFrom === '' && berdiriTo === '') {
@@ -444,15 +508,15 @@
                 language: indonesianLanguage,
                 columnDefs: [{
                         responsivePriority: 1,
-                        targets: [0, 1, 6] // No, Nama Perusahaan, Aksi
+                        targets: [0, 1, 13] // No, Nama Perusahaan, Aksi
                     },
                     {
                         responsivePriority: 2,
-                        targets: [2, 3] // Telepon, Email
+                        targets: [2, 9, 10] // Bidang Usaha, Telepon, Email
                     },
                     {
                         orderable: false,
-                        targets: [6] // Aksi
+                        targets: [13] // Aksi
                     }
                 ],
                 buttons: [{
@@ -495,13 +559,20 @@
 
             // Fungsi untuk mengisi dropdown filter dengan data dari tabel
             function populateFilterDropdowns(tableApi) {
-                // Inisialisasi Set untuk menyimpan nilai unik (Set otomatis menghilangkan duplikat)
+                // Inisialisasi Set untuk menyimpan nilai unik
                 const namaSet = new Set();
+                const bidangSet = new Set();
+                const izinSet = new Set();
+                const golonganSet = new Set();
+                const direkturUtamaSet = new Set();
+                const direkturSet = new Set();
+                const komisarisUtamaSet = new Set();
+                const komisarisSet = new Set();
                 const teleponSet = new Set();
                 const emailSet = new Set();
                 const websiteSet = new Set();
 
-                // Fungsi helper untuk memeriksa apakah nilai valid (bukan kosong, "-", atau tanda lain yang menunjukkan data kosong)
+                // Fungsi helper untuk memeriksa apakah nilai valid
                 function isValidValue(value) {
                     if (!value) return false;
 
@@ -517,21 +588,59 @@
                            !trimmed.includes('text-muted');
                 }
 
-                // Kumpulkan semua nilai unik dari SELURUH data (bukan hanya yang ditampilkan)
-                // Kolom indeks: 1 = Nama, 2 = Telepon, 3 = Email, 4 = Website
+                // Kumpulkan semua nilai unik dari SELURUH data
+                // Nama Perusahaan (kolom 1)
                 tableApi.column(1).data().each(function(value) {
                     if (isValidValue(value)) namaSet.add(value.trim());
                 });
 
+                // Bidang Usaha (kolom 2)
                 tableApi.column(2).data().each(function(value) {
+                    if (isValidValue(value)) bidangSet.add(value.trim());
+                });
+
+                // Izin Usaha (kolom 3)
+                tableApi.column(3).data().each(function(value) {
+                    if (isValidValue(value)) izinSet.add(value.trim());
+                });
+
+                // Golongan Usaha (kolom 4)
+                tableApi.column(4).data().each(function(value) {
+                    if (isValidValue(value)) golonganSet.add(value.trim());
+                });
+
+                // Direktur Utama (kolom 5)
+                tableApi.column(5).data().each(function(value) {
+                    if (isValidValue(value)) direkturUtamaSet.add(value.trim());
+                });
+
+                // Direktur (kolom 6)
+                tableApi.column(6).data().each(function(value) {
+                    if (isValidValue(value)) direkturSet.add(value.trim());
+                });
+
+                // Komisaris Utama (kolom 7)
+                tableApi.column(7).data().each(function(value) {
+                    if (isValidValue(value)) komisarisUtamaSet.add(value.trim());
+                });
+
+                // Komisaris (kolom 8)
+                tableApi.column(8).data().each(function(value) {
+                    if (isValidValue(value)) komisarisSet.add(value.trim());
+                });
+
+                // Telepon (kolom 9)
+                tableApi.column(9).data().each(function(value) {
                     if (isValidValue(value)) teleponSet.add(value.trim());
                 });
 
-                tableApi.column(3).data().each(function(value) {
+                // Email (kolom 10)
+                tableApi.column(10).data().each(function(value) {
                     if (isValidValue(value)) emailSet.add(value.trim());
                 });
 
-                tableApi.column(4).data().each(function(value) {
+                // Website (kolom 11)
+                tableApi.column(11).data().each(function(value) {
                     // Extract only the website URL (remove icon and formatting)
                     let website = value;
                     if (value.includes('</i>')) {
@@ -549,69 +658,62 @@
 
                 // Konversi Set ke Array dan urutkan
                 const namaValues = Array.from(namaSet).sort();
+                const bidangValues = Array.from(bidangSet).sort();
+                const izinValues = Array.from(izinSet).sort();
+                const golonganValues = Array.from(golonganSet).sort();
+                const direkturUtamaValues = Array.from(direkturUtamaSet).sort();
+                const direkturValues = Array.from(direkturSet).sort();
+                const komisarisUtamaValues = Array.from(komisarisUtamaSet).sort();
+                const komisarisValues = Array.from(komisarisSet).sort();
                 const teleponValues = Array.from(teleponSet).sort();
                 const emailValues = Array.from(emailSet).sort();
                 const websiteValues = Array.from(websiteSet).sort();
 
-                // Isi dropdown Nama Perusahaan
-                const namaDropdown = $('#filter_nama');
-                namaValues.forEach(function(value) {
-                    namaDropdown.append(
-                        $('<option>', {
-                            value: value,
-                            text: value
-                        })
-                    );
-                });
-
-                // Isi dropdown Telepon
-                const teleponDropdown = $('#filter_telepon');
-                teleponValues.forEach(function(value) {
-                    teleponDropdown.append(
-                        $('<option>', {
-                            value: value,
-                            text: value
-                        })
-                    );
-                });
-
-                // Isi dropdown Email
-                const emailDropdown = $('#filter_email');
-                emailValues.forEach(function(value) {
-                    emailDropdown.append(
-                        $('<option>', {
-                            value: value,
-                            text: value
-                        })
-                    );
-                });
-
-                // Isi dropdown Website (hanya jika ada valid values)
-                if (websiteValues.length > 0) {
-                    const websiteDropdown = $('#filter_website');
-                    websiteValues.forEach(function(value) {
-                        websiteDropdown.append(
-                            $('<option>', {
-                                value: value,
-                                text: value
-                            })
-                        );
-                    });
-                } else {
-                    // Sembunyikan filter website jika tidak ada nilai valid
-                    $('#filter_website').closest('.mb-3').hide();
+                // Fungsi untuk mengisi dropdown
+                function populateDropdown(dropdownId, values) {
+                    const dropdown = $(`#${dropdownId}`);
+                    if (values.length > 0) {
+                        values.forEach(function(value) {
+                            dropdown.append(
+                                $('<option>', {
+                                    value: value,
+                                    text: value
+                                })
+                            );
+                        });
+                    } else {
+                        // Sembunyikan dropdown jika tidak ada nilai valid
+                        dropdown.closest('.mb-3').hide();
+                    }
                 }
 
-                // Sembunyikan dropdown yang tidak memiliki nilai
-                if (namaValues.length === 0) $('#filter_nama').closest('.mb-3').hide();
-                if (teleponValues.length === 0) $('#filter_telepon').closest('.mb-3').hide();
-                if (emailValues.length === 0) $('#filter_email').closest('.mb-3').hide();
+                // Isi semua dropdown
+                populateDropdown('filter_nama', namaValues);
+                populateDropdown('filter_bidang', bidangValues);
+                populateDropdown('filter_izin', izinValues);
+                populateDropdown('filter_golongan', golonganValues);
+                populateDropdown('filter_direktur_utama', direkturUtamaValues);
+                populateDropdown('filter_direktur', direkturValues);
+                populateDropdown('filter_komisaris_utama', komisarisUtamaValues);
+                populateDropdown('filter_komisaris', komisarisValues);
+                populateDropdown('filter_telepon', teleponValues);
+                populateDropdown('filter_email', emailValues);
+                populateDropdown('filter_website', websiteValues);
 
                 // Log untuk debugging
-                console.log('Nama values loaded:', namaValues.length);
-                console.log('Telepon values loaded:', teleponValues.length);
-                console.log('Email values loaded:', emailValues.length);
-                console.log('Website values loaded:', websiteValues.length);
+                console.log('Filter values loaded:', {
+                    nama: namaValues.length,
+                    bidang: bidangValues.length,
+                    izin: izinValues.length,
+                    golongan: golonganValues.length,
+                    direkturUtama: direkturUtamaValues.length,
+                    direktur: direkturValues.length,
+                    komisarisUtama: komisarisUtamaValues.length,
+                    komisaris: komisarisValues.length,
+                    telepon: teleponValues.length,
+                    email: emailValues.length,
+                    website: websiteValues.length
+                });
             }
 
             // Event for filter and export buttons
@@ -642,8 +744,15 @@
 
                 // Menerapkan filter dari dropdown
                 addColumnFilter(1, $('#filter_nama').val()); // Nama Perusahaan
-                addColumnFilter(2, $('#filter_telepon').val()); // Telepon
-                addColumnFilter(3, $('#filter_email').val()); // Email
+                addColumnFilter(2, $('#filter_bidang').val()); // Bidang Usaha
+                addColumnFilter(3, $('#filter_izin').val()); // Izin Usaha
+                addColumnFilter(4, $('#filter_golongan').val()); // Golongan Usaha
+                addColumnFilter(5, $('#filter_direktur_utama').val()); // Direktur Utama
+                addColumnFilter(6, $('#filter_direktur').val()); // Direktur
+                addColumnFilter(7, $('#filter_komisaris_utama').val()); // Komisaris Utama
+                addColumnFilter(8, $('#filter_komisaris').val()); // Komisaris
+                addColumnFilter(9, $('#filter_telepon').val()); // Telepon
+                addColumnFilter(10, $('#filter_email').val()); // Email
 
                 // Website perlu penanganan khusus karena format HTML
                 const websiteValue = $('#filter_website').val();
@@ -652,7 +761,7 @@
                     $.fn.dataTable.ext.search.push(
                         function(settings, data, dataIndex) {
                             // Kolom website
-                            const website = data[4];
+                            const website = data[11];
 
                             // Cek jika website HTML (dengan tag) atau teks biasa
                             if (website.includes('<')) {
@@ -698,6 +807,13 @@
             // Highlight filter button if any filter is active
             function highlightFilterButton() {
                 if ($('#filter_nama').val() ||
+                    $('#filter_bidang').val() ||
+                    $('#filter_izin').val() ||
+                    $('#filter_golongan').val() ||
+                    $('#filter_direktur_utama').val() ||
+                    $('#filter_direktur').val() ||
+                    $('#filter_komisaris_utama').val() ||
+                    $('#filter_komisaris').val() ||
                     $('#filter_telepon').val() ||
                     $('#filter_email').val() ||
                     $('#filter_website').val() ||
@@ -713,6 +829,13 @@
             $('#exportExcel').on('click', function() {
                 // Copy current filter values to export form
                 $('#export_filter_nama').val($('#filter_nama').val());
+                $('#export_filter_bidang').val($('#filter_bidang').val());
+                $('#export_filter_izin').val($('#filter_izin').val());
+                $('#export_filter_golongan').val($('#filter_golongan').val());
+                $('#export_filter_direktur_utama').val($('#filter_direktur_utama').val());
+                $('#export_filter_direktur').val($('#filter_direktur').val());
+                $('#export_filter_komisaris_utama').val($('#filter_komisaris_utama').val());
+                $('#export_filter_komisaris').val($('#filter_komisaris').val());
                 $('#export_filter_telepon').val($('#filter_telepon').val());
                 $('#export_filter_email').val($('#filter_email').val());
                 $('#export_filter_website').val($('#filter_website').val());
