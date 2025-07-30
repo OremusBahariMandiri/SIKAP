@@ -43,8 +43,17 @@ class PerusahaanController extends Controller
             'AlamatPrsh' => 'required|string',
             'TelpPrsh' => 'required|string|max:20',
             'EmailPrsh' => 'required|email|max:100',
+            'TelpPrsh2' => 'nullable|string|max:20',
+            'EmailPrsh2' => 'nullable|email|max:100',
             'WebPrsh' => 'nullable|url|max:100',
             'TglBerdiri' => 'nullable|date',
+            'BidangUsh' => 'nullable|string|max:100',
+            'IzinUsh' => 'nullable|string|max:100',
+            'GolonganUsh' => 'nullable|string|max:50',
+            'DirekturUtm' => 'nullable|string|max:100',
+            'Direktur' => 'nullable|string|max:100',
+            'KomisarisUtm' => 'nullable|string|max:100',
+            'Komisaris' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -95,10 +104,17 @@ class PerusahaanController extends Controller
             'AlamatPrsh' => 'required|string',
             'TelpPrsh' => 'required|string|max:20',
             'EmailPrsh' => 'required|email|max:100',
-            'TelpPrsh2' => 'max:20',
-            'EmailPrsh2' => 'max:100',
+            'TelpPrsh2' => 'nullable|string|max:20',
+            'EmailPrsh2' => 'nullable|email|max:100',
             'WebPrsh' => 'nullable|url|max:100',
             'TglBerdiri' => 'nullable|date',
+            'BidangUsh' => 'nullable|string|max:100',
+            'IzinUsh' => 'nullable|string|max:100',
+            'GolonganUsh' => 'nullable|string|max:50',
+            'DirekturUtm' => 'nullable|string|max:100',
+            'Direktur' => 'nullable|string|max:100',
+            'KomisarisUtm' => 'nullable|string|max:100',
+            'Komisaris' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -132,6 +148,7 @@ class PerusahaanController extends Controller
         Alert::success('Berhasil', 'Data Perusahaan Berhasil Dihapus.');
         return redirect()->route('perusahaan.index');
     }
+
     public function exportExcel(Request $request)
     {
         // Ambil parameter filter
@@ -142,6 +159,8 @@ class PerusahaanController extends Controller
             'website' => $request->filter_website,
             'tgl_berdiri_from' => $request->filter_tgl_berdiri_from,
             'tgl_berdiri_to' => $request->filter_tgl_berdiri_to,
+            'bidang_usaha' => $request->filter_bidang_usaha,
+            'golongan_usaha' => $request->filter_golongan_usaha,
         ];
 
         // Query data berdasarkan filter
@@ -154,17 +173,33 @@ class PerusahaanController extends Controller
 
         // Filter Telepon
         if ($request->filled('filter_telepon')) {
-            $query->where('TelpPrsh', 'like', '%' . $request->filter_telepon . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('TelpPrsh', 'like', '%' . $request->filter_telepon . '%')
+                  ->orWhere('TelpPrsh2', 'like', '%' . $request->filter_telepon . '%');
+            });
         }
 
         // Filter Email
         if ($request->filled('filter_email')) {
-            $query->where('EmailPrsh', 'like', '%' . $request->filter_email . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('EmailPrsh', 'like', '%' . $request->filter_email . '%')
+                  ->orWhere('EmailPrsh2', 'like', '%' . $request->filter_email . '%');
+            });
         }
 
         // Filter Website
         if ($request->filled('filter_website')) {
             $query->where('WebPrsh', 'like', '%' . $request->filter_website . '%');
+        }
+
+        // Filter Bidang Usaha
+        if ($request->filled('filter_bidang_usaha')) {
+            $query->where('BidangUsh', 'like', '%' . $request->filter_bidang_usaha . '%');
+        }
+
+        // Filter Golongan Usaha
+        if ($request->filled('filter_golongan_usaha')) {
+            $query->where('GolonganUsh', 'like', '%' . $request->filter_golongan_usaha . '%');
         }
 
         // Filter Tanggal Berdiri

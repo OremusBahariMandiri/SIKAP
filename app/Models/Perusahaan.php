@@ -32,6 +32,13 @@ class Perusahaan extends Model
         'TglBerdiri',
         'TelpPrsh2',
         'EmailPrsh2',
+        'BidangUsh',
+        'IzinUsh',
+        'GolonganUsh',
+        'DirekturUtm',
+        'Direktur',
+        'KomisarisUtm',
+        'Komisaris',
         'created_by',
         'updated_by',
     ];
