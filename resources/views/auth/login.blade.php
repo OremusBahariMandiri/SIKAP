@@ -272,7 +272,7 @@
 
             <div class="login-header">
                 <h2>Selamat Datang</h2>
-                <p>Masukkan NIK dan Password Anda untuk mengakses sistem</p>
+                <p>Masukkan NRK dan Password Anda untuk mengakses sistem</p>
             </div>
 
             <!-- Session Status -->
@@ -288,9 +288,9 @@
 
                     <!-- NIK -->
                     <div class="form-group">
-                        <label for="nik" class="form-label">NIK</label>
+                        <label for="nik" class="form-label">NRK</label>
                         <input id="nik" class="form-control @error('nik') is-invalid @enderror" type="text"
-                            name="nik" value="{{ old('nik') }}" placeholder="Masukan NIK" required autofocus autocomplete="username">
+                            name="nik" value="{{ old('nik') }}" placeholder="Masukan NRK" required autofocus autocomplete="username">
                         @error('nik')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
