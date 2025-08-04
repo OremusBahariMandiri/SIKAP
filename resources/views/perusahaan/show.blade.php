@@ -28,16 +28,6 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="info-group mb-3">
-                                        <label class="info-label fw-bold">ID Kode</label>
-                                        <div class="info-value">
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                                <div class="form-control">{{ $perusahaan->IdKode }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="info-group mb-3">
                                         <label class="info-label fw-bold">Nama Perusahaan</label>
                                         <div class="info-value">
                                             <div class="input-group">
@@ -153,7 +143,7 @@
                                         </div>
                                     </div>
 
-                                    
+
                                 </div>
                             </div>
                         </div>
