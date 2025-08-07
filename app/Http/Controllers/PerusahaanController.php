@@ -18,7 +18,32 @@ class PerusahaanController extends Controller
     public function index()
     {
         $perusahaans = Perusahaan::all();
-        return view('perusahaan.index', compact('perusahaans'));
+
+        // Check if user is admin
+        $isAdmin = auth()->user()->isAdmin();
+
+        // If user is admin, grant all permissions
+        if ($isAdmin) {
+            $hasViewPermission = true;
+            $hasEditPermission = true;
+            $hasDeletePermission = true;
+            $hasCreatePermission = true;
+        } else {
+            // Individual permission checks for non-admin users
+            $hasViewPermission = auth()->user()->hasAccess('perusahaan', 'detail');
+            $hasEditPermission = auth()->user()->hasAccess('perusahaan', 'ubah');
+            $hasDeletePermission = auth()->user()->hasAccess('perusahaan', 'hapus');
+            $hasCreatePermission = auth()->user()->hasAccess('perusahaan', 'tambah');
+        }
+
+        return view('perusahaan.index', compact(
+            'perusahaans',
+            'hasViewPermission',
+            'hasEditPermission',
+            'hasDeletePermission',
+            'hasCreatePermission',
+            'isAdmin'
+        ));
     }
 
     /**
@@ -26,6 +51,12 @@ class PerusahaanController extends Controller
      */
     public function create()
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'tambah')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menambah perusahaan.');
+        }
+
         // Generate kode ID otomatis
         $idKode = Perusahaan::generateIdKode();
 
@@ -37,6 +68,12 @@ class PerusahaanController extends Controller
      */
     public function store(Request $request)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'tambah')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menambah perusahaan.');
+        }
+
         $validator = Validator::make($request->all(), [
             'IdKode' => 'required|string|max:10|unique:A03DmPerusahaan,IdKode',
             'NamaPrsh' => 'required|string|max:100',
@@ -77,6 +114,12 @@ class PerusahaanController extends Controller
      */
     public function show(Perusahaan $perusahaan)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'detail')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk melihat detail perusahaan.');
+        }
+
         return view('perusahaan.show', compact('perusahaan'));
     }
 
@@ -85,6 +128,12 @@ class PerusahaanController extends Controller
      */
     public function edit(Perusahaan $perusahaan)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'ubah')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk mengedit perusahaan.');
+        }
+
         return view('perusahaan.edit', compact('perusahaan'));
     }
 
@@ -93,6 +142,12 @@ class PerusahaanController extends Controller
      */
     public function update(Request $request, Perusahaan $perusahaan)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'ubah')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk mengedit perusahaan.');
+        }
+
         $validator = Validator::make($request->all(), [
             'IdKode' => [
                 'required',
@@ -137,6 +192,12 @@ class PerusahaanController extends Controller
      */
     public function destroy(Perusahaan $perusahaan)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('perusahaan', 'hapus')) {
+            return redirect()->route('perusahaan.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menghapus perusahaan.');
+        }
+
         // Check if perusahaan is being used by DokLegal
         if ($perusahaan->dokumenLegal()->count() > 0) {
             return redirect()->route('perusahaan.index')
