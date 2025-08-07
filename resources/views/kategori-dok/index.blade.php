@@ -7,9 +7,12 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span class="fw-bold"><i class="fas fa-folder me-2"></i>Manajemen Kategori Dokumen</span>
+                    {{-- Tampilkan button tambah hanya jika user memiliki akses --}}
+                    @if ($isAdmin || $hasCreatePermission)
                     <a href="{{ route('kategori-dok.create') }}" class="btn btn-light">
                         <i class="fas fa-plus-circle me-1"></i> Tambah
                     </a>
+                    @endif
                 </div>
 
                 <div class="card-body">
@@ -33,7 +36,6 @@
                                 <tr>
                                     <th style="width: 5%">No</th>
                                     <th style="width:80%">Kategori Dokumen</th>
-
                                     <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -42,20 +44,30 @@
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $kategori->KategoriDok }}</td>
-
                                         <td>
                                             <div class="d-flex gap-1 justify-content-center">
+                                                {{-- Detail button --}}
+                                                @if ($isAdmin || $hasViewPermission)
                                                 <a href="{{ route('kategori-dok.show', $kategori->id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Detail">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                @endif
+
+                                                {{-- Edit button --}}
+                                                @if ($isAdmin || $hasEditPermission)
                                                 <a href="{{ route('kategori-dok.edit', $kategori->id) }}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                @endif
+
+                                                {{-- Delete button --}}
+                                                @if ($isAdmin || $hasDeletePermission)
                                                 <button type="button" class="btn btn-sm btn-danger delete-confirm"
                                                     data-id="{{ $kategori->id }}" data-name="{{ $kategori->KategoriDok }}"
                                                     data-bs-toggle="tooltip" title="Hapus">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

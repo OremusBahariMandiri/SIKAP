@@ -7,9 +7,12 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span class="fw-bold"><i class="fas fa-file-alt me-2"></i>Manajemen Jenis Dokumen</span>
+                    {{-- Tampilkan button tambah hanya jika user memiliki akses --}}
+                    @if ($isAdmin || $hasCreatePermission)
                     <a href="{{ route('jenis-dok.create') }}" class="btn btn-light">
                         <i class="fas fa-plus-circle me-1"></i> Tambah
                     </a>
+                    @endif
                 </div>
 
                 <div class="card-body">
@@ -45,17 +48,28 @@
                                         <td>{{ $jenis->kategori ? $jenis->kategori->KategoriDok : 'Tidak Ada Kategori' }}</td>
                                         <td>
                                             <div class="d-flex gap-1 justify-content-center">
+                                                {{-- Detail button --}}
+                                                @if ($isAdmin || $hasViewPermission)
                                                 <a href="{{ route('jenis-dok.show', $jenis->id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Detail">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                @endif
+
+                                                {{-- Edit button --}}
+                                                @if ($isAdmin || $hasEditPermission)
                                                 <a href="{{ route('jenis-dok.edit', $jenis->id) }}" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                @endif
+
+                                                {{-- Delete button --}}
+                                                @if ($isAdmin || $hasDeletePermission)
                                                 <button type="button" class="btn btn-sm btn-danger delete-confirm"
                                                     data-id="{{ $jenis->id }}" data-name="{{ $jenis->JenisDok }}"
                                                     data-bs-toggle="tooltip" title="Hapus">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

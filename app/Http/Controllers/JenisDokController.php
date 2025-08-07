@@ -17,7 +17,32 @@ class JenisDokController extends Controller
     public function index()
     {
         $jenisDoks = JenisDok::with('kategori')->get();
-        return view('jenis-dok.index', compact('jenisDoks'));
+
+        // Check if user is admin
+        $isAdmin = auth()->user()->isAdmin();
+
+        // If user is admin, grant all permissions
+        if ($isAdmin) {
+            $hasViewPermission = true;
+            $hasEditPermission = true;
+            $hasDeletePermission = true;
+            $hasCreatePermission = true;
+        } else {
+            // Individual permission checks for non-admin users
+            $hasViewPermission = auth()->user()->hasAccess('jenis-dok', 'detail');
+            $hasEditPermission = auth()->user()->hasAccess('jenis-dok', 'ubah');
+            $hasDeletePermission = auth()->user()->hasAccess('jenis-dok', 'hapus');
+            $hasCreatePermission = auth()->user()->hasAccess('jenis-dok', 'tambah');
+        }
+
+        return view('jenis-dok.index', compact(
+            'jenisDoks',
+            'hasViewPermission',
+            'hasEditPermission',
+            'hasDeletePermission',
+            'hasCreatePermission',
+            'isAdmin'
+        ));
     }
 
     /**
@@ -25,6 +50,12 @@ class JenisDokController extends Controller
      */
     public function create()
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'tambah')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menambah jenis dokumen.');
+        }
+
         // Generate kode ID otomatis
         $idKode = JenisDok::generateIdKode();
         $kategoriDokumen = KategoriDok::orderBy('KategoriDok', 'asc')->get();
@@ -37,6 +68,12 @@ class JenisDokController extends Controller
      */
     public function store(Request $request)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'tambah')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menambah jenis dokumen.');
+        }
+
         $validator = Validator::make($request->all(), [
             'IdKode' => 'required|string|max:10|unique:A05DmJenisDok,IdKode',
             'JenisDok' => 'required|string|max:100',
@@ -66,6 +103,12 @@ class JenisDokController extends Controller
      */
     public function show(JenisDok $jenisDok)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'detail')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk melihat detail jenis dokumen.');
+        }
+
         $jenisDok->load('kategori', 'dokumenLegal');
         return view('jenis-dok.show', compact('jenisDok'));
     }
@@ -75,6 +118,12 @@ class JenisDokController extends Controller
      */
     public function edit(JenisDok $jenisDok)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'ubah')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk mengedit jenis dokumen.');
+        }
+
         $kategoriDokumen = KategoriDok::orderBy('KategoriDok', 'asc')->get();
         return view('jenis-dok.edit', compact('jenisDok', 'kategoriDokumen'));
     }
@@ -84,6 +133,12 @@ class JenisDokController extends Controller
      */
     public function update(Request $request, JenisDok $jenisDok)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'ubah')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk mengedit jenis dokumen.');
+        }
+
         $validator = Validator::make($request->all(), [
             'IdKode' => [
                 'required',
@@ -118,6 +173,12 @@ class JenisDokController extends Controller
      */
     public function destroy(JenisDok $jenisDok)
     {
+        // Check permission
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasAccess('jenis-dok', 'hapus')) {
+            return redirect()->route('jenis-dok.index')
+                ->with('error', 'Anda tidak memiliki hak akses untuk menghapus jenis dokumen.');
+        }
+
         // Check if jenis is being used by DokLegal
         if ($jenisDok->dokumenLegal()->count() > 0) {
             return redirect()->route('jenis-dok.index')
