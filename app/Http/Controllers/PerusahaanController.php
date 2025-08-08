@@ -190,6 +190,9 @@ class PerusahaanController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Perusahaan $perusahaan)
     {
         // Check permission
