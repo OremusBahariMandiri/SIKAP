@@ -65,7 +65,7 @@ class Perusahaan extends Model
         $year = $now->format('y');
 
         // Ambil data terakhir dengan format bulan dan tahun yang sama
-        $lastData = self::where('IdKode', 'like', "A02{$month}{$year}%")
+        $lastData = self::where('IdKode', 'like', "A03{$month}{$year}%")
             ->orderBy('IdKode', 'desc')
             ->first();
 
@@ -81,7 +81,7 @@ class Perusahaan extends Model
         // Format increment menjadi 3 digit dengan leading zeros
         $formattedIncrement = str_pad($newIncrement, 3, '0', STR_PAD_LEFT);
 
-        return "A02{$month}{$year}{$formattedIncrement}";
+        return "A03{$month}{$year}{$formattedIncrement}";
     }
 
     /**

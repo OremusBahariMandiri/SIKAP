@@ -90,19 +90,29 @@ class DokLegal extends Model
     // Generate ID Kode otomatis
     public static function generateIdKode()
     {
-        $prefix = 'DOK';
-        $date = Carbon::now()->format('Ymd');
-        $rand = Str::random(3);
-        $lastDoc = self::latest()->first();
+        // Mendapatkan bulan dan tahun saat ini dalam format WIB
+        $now = Carbon::now('Asia/Jakarta');
+        $month = $now->format('m');
+        $year = $now->format('y');
 
-        if ($lastDoc) {
-            $lastNumber = intval(substr($lastDoc->IdKode, -3));
-            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        // Ambil data terakhir dengan format tahun yang sama (tidak peduli bulan)
+        $lastData = self::where('IdKode', 'like', "B01__{$year}%")
+            ->orderBy('IdKode', 'desc')
+            ->first();
+
+        if ($lastData) {
+            // Ambil nomor increment dari ID terakhir
+            $lastIncrement = (int) substr($lastData->IdKode, -3);
+            $newIncrement = $lastIncrement + 1;
         } else {
-            $newNumber = '001';
+            // Jika tidak ada data dengan tahun yang sama, mulai dari 1
+            $newIncrement = 1;
         }
 
-        return $prefix . $date . $rand . $newNumber;
+        // Format increment menjadi 3 digit dengan leading zeros
+        $formattedIncrement = str_pad($newIncrement, 3, '0', STR_PAD_LEFT);
+
+        return "B01{$month}{$year}{$formattedIncrement}";
     }
 
     // Hitung masa berlaku dari dua tanggal
@@ -133,5 +143,4 @@ class DokLegal extends Model
             $this->attributes['MasaPengingat'] = '-';
         }
     }
-
 }
