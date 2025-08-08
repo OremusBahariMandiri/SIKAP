@@ -28,14 +28,16 @@
                         @if (session('success'))
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
                             </div>
                         @endif
 
                         @if (session('error'))
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <i class="fas fa-exclamation-circle me-1"></i> {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
                             </div>
                         @endif
 
@@ -69,13 +71,14 @@
                                             <td>{{ $perusahaan->GolonganUsh }}</td>
                                             <td>{{ $perusahaan->DirekturUtm }}</td>
                                             <td>{{ $perusahaan->Direktur }}</td>
-                                            <td>{{ $perusahaan->KomisarisUtm}}</td>
+                                            <td>{{ $perusahaan->KomisarisUtm }}</td>
                                             <td>{{ $perusahaan->Komisaris }}</td>
                                             <td>{{ $perusahaan->TelpPrsh }}</td>
                                             <td>{{ $perusahaan->EmailPrsh }}</td>
                                             <td>
                                                 @if ($perusahaan->WebPrsh)
-                                                    <a href="{{ $perusahaan->WebPrsh }}" target="_blank" class="text-decoration-none">
+                                                    <a href="{{ $perusahaan->WebPrsh }}" target="_blank"
+                                                        class="text-decoration-none">
                                                         <i class="fas fa-globe me-1"></i>{{ $perusahaan->WebPrsh }}
                                                     </a>
                                                 @else
@@ -94,7 +97,8 @@
                                                     {{-- Detail button --}}
                                                     @if ($isAdmin || $hasViewPermission)
                                                         <a href="{{ route('perusahaan.show', $perusahaan->id) }}"
-                                                            class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Detail">
+                                                            class="btn btn-sm btn-info" data-bs-toggle="tooltip"
+                                                            title="Detail">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
                                                     @endif
@@ -111,7 +115,8 @@
                                                     {{-- Delete button --}}
                                                     @if ($isAdmin || $hasDeletePermission)
                                                         <button type="button" class="btn btn-sm btn-danger delete-confirm"
-                                                            data-id="{{ $perusahaan->id }}" data-name="{{ $perusahaan->NamaPrsh }}"
+                                                            data-id="{{ $perusahaan->id }}"
+                                                            data-name="{{ $perusahaan->NamaPrsh }}"
                                                             data-bs-toggle="tooltip" title="Hapus">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
@@ -268,7 +273,8 @@
                     <h5 class="modal-title" id="deleteConfirmationModalLabel">
                         <i class="fas fa-exclamation-triangle me-2"></i>Konfirmasi Hapus
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Apakah Anda yakin ingin menghapus perusahaan <strong id="companyNameToDelete"></strong>?</p>
@@ -404,6 +410,7 @@
         .perusahaanPage .btn-sm {
             transition: transform 0.2s;
         }
+
         .perusahaanPage .btn-sm:hover {
             transform: scale(1.1);
         }
@@ -423,9 +430,17 @@
 
         /* Flash effect when hovering */
         @keyframes flashBorder {
-            0% { box-shadow: 0 0 0 rgba(13, 110, 253, 0); }
-            50% { box-shadow: 0 0 8px rgba(13, 110, 253, 0.5); }
-            100% { box-shadow: 0 0 0 rgba(13, 110, 253, 0); }
+            0% {
+                box-shadow: 0 0 0 rgba(13, 110, 253, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 0 rgba(13, 110, 253, 0);
+            }
         }
 
         .perusahaanPage #perusahaanTable tbody tr.row-hover-active {
@@ -487,7 +502,7 @@
 
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
 
@@ -596,11 +611,11 @@
 
                     // Cek jika string kosong, tanda "-", atau teks "tidak ada", dll
                     return trimmed !== '' &&
-                           trimmed !== '-' &&
-                           trimmed.toLowerCase() !== 'tidak ada' &&
-                           trimmed.toLowerCase() !== 'n/a' &&
-                           trimmed.toLowerCase() !== 'null' &&
-                           !trimmed.includes('text-muted');
+                        trimmed !== '-' &&
+                        trimmed.toLowerCase() !== 'tidak ada' &&
+                        trimmed.toLowerCase() !== 'n/a' &&
+                        trimmed.toLowerCase() !== 'null' &&
+                        !trimmed.includes('text-muted');
                 }
 
                 // Kumpulkan semua nilai unik dari SELURUH data
@@ -753,7 +768,8 @@
                 // Fungsi untuk menambahkan filter kolom dengan exact match
                 function addColumnFilter(columnIdx, value) {
                     if (value) {
-                        table.column(columnIdx).search('^' + $.fn.dataTable.util.escapeRegex(value) + '$', true, false);
+                        table.column(columnIdx).search('^' + $.fn.dataTable.util.escapeRegex(value) + '$',
+                            true, false);
                     }
                 }
 
@@ -873,18 +889,33 @@
             });
 
             // Handle Delete Confirmation
-            $('.delete-confirm').on('click', function() {
+            $(document).on('click', '.delete-confirm', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name');
 
                 // Set company name in modal
                 $('#companyNameToDelete').text(name);
 
-                // Set form action URL
-                $('#deleteForm').attr('action', "{{ url('perusahaan') }}/" + id);
+                // Set form action URL untuk perusahaan
+                $('#deleteForm').attr('action', '/perusahaan/' + id);
 
                 // Show modal
                 $('#deleteConfirmationModal').modal('show');
+            });
+
+            $('#deleteForm').on('submit', function(e) {
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalText = submitBtn.html();
+
+                // Disable button dan ubah text
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Menghapus...');
+
+                // Reset button jika ada error (tidak akan dijalankan jika redirect berhasil)
+                setTimeout(function() {
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                }, 5000);
             });
 
             // Tambahkan efek klik pada baris tabel untuk menuju halaman detail
@@ -897,10 +928,10 @@
 
                 // Dapatkan ID dokumen dari tombol detail - hanya jika user memiliki akses
                 @if ($isAdmin || $hasViewPermission)
-                var detailLink = $(this).find('a[title="Detail"]').attr('href');
-                if (detailLink) {
-                    window.location.href = detailLink;
-                }
+                    var detailLink = $(this).find('a[title="Detail"]').attr('href');
+                    if (detailLink) {
+                        window.location.href = detailLink;
+                    }
                 @endif
             });
 
