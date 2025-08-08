@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -93,17 +94,29 @@ class User extends Authenticatable
      */
     public static function generateIdKode()
     {
-        $lastUser = self::orderBy('id', 'desc')->first();
+        // Mendapatkan bulan dan tahun saat ini dalam format WIB
+        $now = Carbon::now('Asia/Jakarta');
+        $month = $now->format('m');
+        $year = $now->format('y');
 
-        if (!$lastUser) {
-            return 'USR0001';
+        // Ambil data terakhir dengan format tahun yang sama (tidak peduli bulan)
+        $lastData = self::where('IdKode', 'like', "A01__{$year}%")
+            ->orderBy('IdKode', 'desc')
+            ->first();
+
+        if ($lastData) {
+            // Ambil nomor increment dari ID terakhir
+            $lastIncrement = (int) substr($lastData->IdKode, -3);
+            $newIncrement = $lastIncrement + 1;
+        } else {
+            // Jika tidak ada data dengan tahun yang sama, mulai dari 1
+            $newIncrement = 1;
         }
 
-        $lastId = $lastUser->IdKode;
-        $lastNumber = intval(substr($lastId, 3));
-        $newNumber = $lastNumber + 1;
+        // Format increment menjadi 3 digit dengan leading zeros
+        $formattedIncrement = str_pad($newIncrement, 3, '0', STR_PAD_LEFT);
 
-        return 'USR' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        return "A01{$month}{$year}{$formattedIncrement}";
     }
 
     /**
