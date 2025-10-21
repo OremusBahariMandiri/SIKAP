@@ -33,6 +33,12 @@
                     // Check if user has access to any master data menu
                     $hasMasterDataAccess =
                         $hasUserAccess || $hasPerusahaanAccess || $hasKategoriDokAccess || $hasJenisDokAccess;
+
+                    // Check if user has access to dokumen menu
+                    $hasDokumenLegalAccess = Auth::user()->isAdmin() || Auth::user()->hasAccess('dokLegal', 'detail');
+
+                    // Check if user has access to rekap menu
+                    $hasRekapCabangAccess = Auth::user()->isAdmin() || Auth::user()->hasAccess('rekapCabang', 'detail');
                 @endphp
 
                 @if ($hasMasterDataAccess)
@@ -92,15 +98,56 @@
                     </li>
                 @endif
 
-                @if (Auth::user()->isAdmin() || Auth::user()->hasAccess('dokLegal', 'detail'))
+                @if ($hasDokumenLegalAccess)
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('dokLegal*') ? 'active' : '' }}"
-                            href="{{ route('dokLegal.index') }}">
-                            <i class="fas fa-file-alt"></i>
-                            <span class="nav-text">Dokumen Legal</span>
+                        <a class="nav-link sidebar-menu-item {{ request()->is('dokLegal*') ? 'active' : '' }}"
+                            href="#" data-menu="dokumen">
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <div class="menu-icon-text">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span class="nav-text">Dokumen</span>
+                                </div>
+                                <i class="fas fa-chevron-down submenu-indicator"></i>
+                            </div>
                         </a>
+                        <ul class="sidebar-submenu {{ request()->is('dokLegal*') ? 'show' : '' }}"
+                            id="dokumen">
+                            <li class="nav-item">
+                                <a class="submenu-link {{ request()->is('dokLegal*') ? 'active' : '' }}"
+                                    href="{{ route('dokLegal.index') }}">
+                                    <i class="fas fa-file-contract"></i>
+                                    <span>Legal</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 @endif
+
+                @if ($hasRekapCabangAccess)
+                    <li class="nav-item">
+                        <a class="nav-link sidebar-menu-item {{ request()->is('cabang.rekap') ? 'active' : '' }}"
+                            href="#" data-menu="rekap">
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <div class="menu-icon-text">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span class="nav-text">Rekap</span>
+                                </div>
+                                <i class="fas fa-chevron-down submenu-indicator"></i>
+                            </div>
+                        </a>
+                        <ul class="sidebar-submenu {{ request()->is('cabang.rekap') ? 'show' : '' }}"
+                            id="rekap">
+                            <li class="nav-item">
+                                <a class="submenu-link {{ request()->is('cabang.rekap') ? 'active' : '' }}"
+                                    href="{{ route('cabang.rekap') }}">
+                                    <i class="fas fa-file-invoice"></i>
+                                    <span>Cabang</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('settings.index') ? 'active' : '' }}"
                         href="{{ route('settings.index') }}">

@@ -151,6 +151,11 @@ class UserAccessController extends Controller
                 'display_name' => 'Dokumen Legal',
                 'controller' => 'DokLegalController',
             ],
+            [
+                'name' => 'rekapCabang',
+                'display_name' => 'Rekap Cabang',
+                'controller' => 'CabangRekapController',
+            ],
         ];
     }
 }

@@ -143,4 +143,5 @@ class DokLegal extends Model
             $this->attributes['MasaPengingat'] = '-';
         }
     }
+    
 }

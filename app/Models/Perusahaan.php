@@ -91,4 +91,9 @@ class Perusahaan extends Model
     {
         return $this->hasMany(DokLegal::class, 'DokPerusahaan', 'NamaPrsh');
     }
+
+    public function dokLegals()
+    {
+        return $this->hasMany(DokLegal::class, 'perusahaan_id');
+    }
 }

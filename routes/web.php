@@ -197,6 +197,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dokLegal/export-excel', [App\Http\Controllers\DokLegalController::class, 'exportExcel'])->name('dokLegal.export-excel');
     Route::post('/perusahaan/export-excel', [PerusahaanController::class, 'exportExcel'])->name('perusahaan.export-excel');
 
+    Route::get('/cabang-rekap', [App\Http\Controllers\CabangRekapController::class, 'index'])->name('cabang.rekap');
+    Route::get('/cabang-rekap/detail/{perusahaanId}', [App\Http\Controllers\CabangRekapController::class, 'detail'])->name('cabang.detail');
 });
 
 
