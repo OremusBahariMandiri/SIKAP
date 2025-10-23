@@ -8,18 +8,14 @@ use App\Http\Controllers\PerusahaanController;
 use App\Http\Controllers\KategoriDokController;
 use App\Http\Controllers\JenisDokController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SecurityErrorController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Web Routes dengan Rate Limiting untuk Keamanan
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
 // Redirect root ke login atau dashboard
@@ -30,178 +26,220 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Grup rute yang memerlukan autentikasi
-Route::middleware(['auth'])->group(function () {
-    // Dashboard/Home
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
-
-    // ===================================================
-    // User Management Routes - PERHATIKAN URUTAN ROUTE!
-    // ===================================================
-
-    // Route create harus didefinisikan SEBELUM route show
-    Route::middleware(['access:users,tambah'])->group(function () {
-        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-        Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    });
-
-    Route::middleware(['access:users,detail'])->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('users.index');
-        // Tambahkan constraint where agar hanya cocok dengan ID numerik
-        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')->where('user', '[0-9]+');
-    });
-
-    // Route untuk user access management
-    Route::middleware(['admin'])->group(function () {
-        Route::get('/users/{user}/access', [UserAccessController::class, 'edit'])->name('users.access.edit');
-        Route::put('/users/{user}/access', [UserAccessController::class, 'update'])->name('users.access.update');
-    });
-
-    Route::middleware(['access:users,ubah'])->group(function () {
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::patch('/users/{user}', [UserController::class, 'update']);
-    });
-
-    Route::middleware(['access:users,hapus'])->group(function () {
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    });
-
-    // ===================================================
-    // Dokumen Legal Routes - PERHATIKAN URUTAN ROUTE!
-    // ===================================================
-
-    // Route create harus didefinisikan SEBELUM route show
-    Route::middleware(['access:dokLegal,tambah'])->group(function () {
-        Route::get('/dokLegal/create', [DokLegalController::class, 'create'])->name('dokLegal.create');
-        Route::post('/dokLegal', [DokLegalController::class, 'store'])->name('dokLegal.store');
-    });
-
-    Route::middleware(['access:dokLegal,detail'])->group(function () {
-        Route::get('/dokLegal', [DokLegalController::class, 'index'])->name('dokLegal.index');
-        Route::get('/dokLegal/{dokLegal}', [DokLegalController::class, 'show'])->name('dokLegal.show')->where('dokLegal', '[0-9]+');
-        Route::get('/dokLegal/{dokLegal}/view', [DokLegalController::class, 'view'])->name('dokLegal.view');
-    });
-
-    Route::middleware(['access:dokLegal,download'])->group(function () {
-        Route::get('/dokLegal/{dokLegal}/download', [DokLegalController::class, 'download'])->name('dokLegal.download');
-    });
-
-    Route::middleware(['access:dokLegal,ubah'])->group(function () {
-        Route::get('/dokLegal/{dokLegal}/edit', [DokLegalController::class, 'edit'])->name('dokLegal.edit');
-        Route::put('/dokLegal/{dokLegal}', [DokLegalController::class, 'update'])->name('dokLegal.update');
-        Route::patch('/dokLegal/{dokLegal}', [DokLegalController::class, 'update']);
-    });
-
-    Route::middleware(['access:dokLegal,hapus'])->group(function () {
-        Route::delete('/dokLegal/{dokLegal}', [DokLegalController::class, 'destroy'])->name('dokLegal.destroy');
-    });
-
-    Route::middleware(['access:dokLegal,monitoring'])->group(function () {
-        // Tambahkan route untuk monitoring dokumen legal jika ada
-    });
-
-    // ===================================================
-    // Perusahaan Routes - PERHATIKAN URUTAN ROUTE!
-    // ===================================================
-
-    // Route create harus didefinisikan SEBELUM route show
-    Route::middleware(['access:perusahaan,tambah'])->group(function () {
-        Route::get('/perusahaan/create', [PerusahaanController::class, 'create'])->name('perusahaan.create');
-        Route::post('/perusahaan', [PerusahaanController::class, 'store'])->name('perusahaan.store');
-    });
-
-    Route::middleware(['access:perusahaan,detail'])->group(function () {
-        Route::get('/perusahaan', [PerusahaanController::class, 'index'])->name('perusahaan.index');
-        Route::get('/perusahaan/{perusahaan}', [PerusahaanController::class, 'show'])->name('perusahaan.show')->where('perusahaan', '[0-9]+');
-    });
-
-    Route::middleware(['access:perusahaan,ubah'])->group(function () {
-        Route::get('/perusahaan/{perusahaan}/edit', [PerusahaanController::class, 'edit'])->name('perusahaan.edit');
-        Route::put('/perusahaan/{perusahaan}', [PerusahaanController::class, 'update'])->name('perusahaan.update');
-        Route::patch('/perusahaan/{perusahaan}', [PerusahaanController::class, 'update']);
-    });
-
-    Route::middleware(['access:perusahaan,hapus'])->group(function () {
-        Route::delete('/perusahaan/{perusahaan}', [PerusahaanController::class, 'destroy'])->name('perusahaan.destroy');
-    });
-
-    // ===================================================
-    // Kategori Dokumen Routes - PERHATIKAN URUTAN ROUTE!
-    // ===================================================
-
-    // Route create harus didefinisikan SEBELUM route show
-    Route::middleware(['access:kategori-dok,tambah'])->group(function () {
-        Route::get('/kategori-dok/create', [KategoriDokController::class, 'create'])->name('kategori-dok.create');
-        Route::post('/kategori-dok', [KategoriDokController::class, 'store'])->name('kategori-dok.store');
-    });
-
-    Route::middleware(['access:kategori-dok,detail'])->group(function () {
-        Route::get('/kategori-dok', [KategoriDokController::class, 'index'])->name('kategori-dok.index');
-        Route::get('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'show'])->name('kategori-dok.show')->where('kategoriDok', '[0-9]+');
-    });
-
-    Route::middleware(['access:kategori-dok,ubah'])->group(function () {
-        Route::get('/kategori-dok/{kategoriDok}/edit', [KategoriDokController::class, 'edit'])->name('kategori-dok.edit');
-        Route::put('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'update'])->name('kategori-dok.update');
-        Route::patch('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'update']);
-    });
-
-    Route::middleware(['access:kategori-dok,hapus'])->group(function () {
-        Route::delete('/kategori-dok/{kategoriDok}', [KategoriDokController::class, 'destroy'])->name('kategori-dok.destroy');
-    });
-
-    // ===================================================
-    // Jenis Dokumen Routes - PERHATIKAN URUTAN ROUTE!
-    // ===================================================
-
-    // Route create harus didefinisikan SEBELUM route show
-    Route::middleware(['access:jenis-dok,tambah'])->group(function () {
-        Route::get('/jenis-dok/create', [JenisDokController::class, 'create'])->name('jenis-dok.create');
-        Route::post('/jenis-dok', [JenisDokController::class, 'store'])->name('jenis-dok.store');
-    });
-
-    Route::middleware(['access:jenis-dok,detail'])->group(function () {
-        Route::get('/jenis-dok', [JenisDokController::class, 'index'])->name('jenis-dok.index');
-        Route::get('/jenis-dok/{jenisDok}', [JenisDokController::class, 'show'])->name('jenis-dok.show')->where('jenisDok', '[0-9]+');
-    });
-
-    Route::middleware(['access:jenis-dok,ubah'])->group(function () {
-        Route::get('/jenis-dok/{jenisDok}/edit', [JenisDokController::class, 'edit'])->name('jenis-dok.edit');
-        Route::put('/jenis-dok/{jenisDok}', [JenisDokController::class, 'update'])->name('jenis-dok.update');
-        Route::patch('/jenis-dok/{jenisDok}', [JenisDokController::class, 'update']);
-    });
-
-    Route::middleware(['access:jenis-dok,hapus'])->group(function () {
-        Route::delete('/jenis-dok/{jenisDok}', [JenisDokController::class, 'destroy'])->name('jenis-dok.destroy');
-    });
-
-    Route::get('/dokLegal/stats', [App\Http\Controllers\DokLegalController::class, 'getDocumentStats'])->name('dokLegal.getDocumentStats');
-
-    // API untuk dashboard stats - tidak menggunakan middleware untuk memudahkan akses
-    Route::get('/api/dokumen-by-status', [DokLegalController::class, 'getDokumenByStatus']);
-    Route::get('/api/dokumen-terbaru', [DokLegalController::class, 'getDokumenTerbaru']);
-    Route::get('/api/pengingat/{dokLegal}', [DokLegalController::class, 'getPengingat']);
-
-    // Profile routes - tidak menggunakan middleware untuk memudahkan akses
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
-    Route::post('/settings/update-password', [App\Http\Controllers\SettingsController::class, 'updatePassword'])->name('settings.update-password');
-    // Route untuk debugging
-    Route::get('/debug/users/create', [UserController::class, 'create'])->name('debug.users.create');
-    // Tambahkan route berikut di routes/web.php
-    Route::post('/dokLegal/export-excel', [App\Http\Controllers\DokLegalController::class, 'exportExcel'])->name('dokLegal.export-excel');
-    Route::post('/perusahaan/export-excel', [PerusahaanController::class, 'exportExcel'])->name('perusahaan.export-excel');
-
-    Route::get('/cabang-rekap', [App\Http\Controllers\CabangRekapController::class, 'index'])->name('cabang.rekap');
-    Route::get('/cabang-rekap/detail/{perusahaanId}', [App\Http\Controllers\CabangRekapController::class, 'detail'])->name('cabang.detail');
+// Security error pages - Halaman eror keamanan
+Route::prefix('security')->name('security.')->group(function () {
+    Route::get('/blocked', [SecurityErrorController::class, 'blocked'])->name('blocked');
+    Route::get('/unauthorized', [SecurityErrorController::class, 'unauthorized'])->name('unauthorized');
+    Route::get('/ip-not-whitelisted', [SecurityErrorController::class, 'ipNotWhitelisted'])->name('ip-not-whitelisted');
+    Route::get('/error', [SecurityErrorController::class, 'securityError'])->name('error');
 });
 
+// Grup rute yang memerlukan autentikasi dengan rate limiting
+Route::middleware(['auth', 'throttle:general'])->group(function () {
+    // Dashboard/Home - Rate limit lebih tinggi untuk halaman utama
+    Route::middleware('throttle:dashboard')->group(function () {
+        Route::get('/home', [HomeController::class, 'index'])->name('home');
+        Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+    });
 
+    // ===================================================
+    // User Management Routes dengan Rate Limiting Ketat
+    // ===================================================
+    Route::prefix('users')->name('users.')->group(function () {
+
+        // Create & Store - Rate limit ketat untuk mencegah spam
+        Route::middleware(['access:users,tambah', 'throttle:create'])->group(function () {
+            Route::get('/create', [UserController::class, 'create'])->name('create');
+            Route::post('/', [UserController::class, 'store'])->name('store');
+        });
+
+        // Read operations - Rate limit sedang
+        Route::middleware(['access:users,detail', 'throttle:read'])->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/{user}', [UserController::class, 'show'])->name('show')->where('user', '[0-9]+');
+        });
+
+        // User Access Management - Admin only dengan rate limit ketat
+        Route::middleware(['admin', 'throttle:admin'])->group(function () {
+            Route::get('/{user}/access', [UserAccessController::class, 'edit'])->name('access.edit');
+            Route::put('/{user}/access', [UserAccessController::class, 'update'])->name('access.update');
+        });
+
+        // Update operations - Rate limit sedang
+        Route::middleware(['access:users,ubah', 'throttle:update'])->group(function () {
+            Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::patch('/{user}', [UserController::class, 'update']);
+        });
+
+        // Delete operations - Rate limit ketat
+        Route::middleware(['access:users,hapus', 'throttle:delete'])->group(function () {
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // ===================================================
+    // Dokumen Legal Routes dengan Rate Limiting
+    // ===================================================
+    Route::prefix('dokLegal')->name('dokLegal.')->group(function () {
+
+        // Create & Store
+        Route::middleware(['access:dokLegal,tambah', 'throttle:create'])->group(function () {
+            Route::get('/create', [DokLegalController::class, 'create'])->name('create');
+            Route::post('/', [DokLegalController::class, 'store'])->name('store');
+        });
+
+        // Read operations
+        Route::middleware(['access:dokLegal,detail', 'throttle:read'])->group(function () {
+            Route::get('/', [DokLegalController::class, 'index'])->name('index');
+            Route::get('/{dokLegal}', [DokLegalController::class, 'show'])->name('show')->where('dokLegal', '[0-9]+');
+            Route::get('/{dokLegal}/view', [DokLegalController::class, 'view'])->name('view');
+        });
+
+        // Download - Rate limit ketat untuk mencegah abuse
+        Route::middleware(['access:dokLegal,download', 'throttle:download'])->group(function () {
+            Route::get('/{dokLegal}/download', [DokLegalController::class, 'download'])->name('download');
+        });
+
+        // Update operations
+        Route::middleware(['access:dokLegal,ubah', 'throttle:update'])->group(function () {
+            Route::get('/{dokLegal}/edit', [DokLegalController::class, 'edit'])->name('edit');
+            Route::put('/{dokLegal}', [DokLegalController::class, 'update'])->name('update');
+            Route::patch('/{dokLegal}', [DokLegalController::class, 'update']);
+        });
+
+        // Delete operations
+        Route::middleware(['access:dokLegal,hapus', 'throttle:delete'])->group(function () {
+            Route::delete('/{dokLegal}', [DokLegalController::class, 'destroy'])->name('destroy');
+        });
+
+        // Export - Rate limit ketat untuk operasi berat
+        Route::middleware('throttle:export')->group(function () {
+            Route::post('/export-excel', [DokLegalController::class, 'exportExcel'])->name('export-excel');
+        });
+
+        // Stats & API endpoints - Rate limit sedang
+        Route::middleware('throttle:api')->group(function () {
+            Route::get('/stats', [DokLegalController::class, 'getDocumentStats'])->name('getDocumentStats');
+        });
+    });
+
+    // ===================================================
+    // Perusahaan Routes dengan Rate Limiting
+    // ===================================================
+    Route::prefix('perusahaan')->name('perusahaan.')->group(function () {
+
+        Route::middleware(['access:perusahaan,tambah', 'throttle:create'])->group(function () {
+            Route::get('/create', [PerusahaanController::class, 'create'])->name('create');
+            Route::post('/', [PerusahaanController::class, 'store'])->name('store');
+        });
+
+        Route::middleware(['access:perusahaan,detail', 'throttle:read'])->group(function () {
+            Route::get('/', [PerusahaanController::class, 'index'])->name('index');
+            Route::get('/{perusahaan}', [PerusahaanController::class, 'show'])->name('show')->where('perusahaan', '[0-9]+');
+        });
+
+        Route::middleware(['access:perusahaan,ubah', 'throttle:update'])->group(function () {
+            Route::get('/{perusahaan}/edit', [PerusahaanController::class, 'edit'])->name('edit');
+            Route::put('/{perusahaan}', [PerusahaanController::class, 'update'])->name('update');
+            Route::patch('/{perusahaan}', [PerusahaanController::class, 'update']);
+        });
+
+        Route::middleware(['access:perusahaan,hapus', 'throttle:delete'])->group(function () {
+            Route::delete('/{perusahaan}', [PerusahaanController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::middleware('throttle:export')->group(function () {
+            Route::post('/export-excel', [PerusahaanController::class, 'exportExcel'])->name('export-excel');
+        });
+    });
+
+    // ===================================================
+    // Kategori Dokumen Routes dengan Rate Limiting
+    // ===================================================
+    Route::prefix('kategori-dok')->name('kategori-dok.')->group(function () {
+
+        Route::middleware(['access:kategori-dok,tambah', 'throttle:create'])->group(function () {
+            Route::get('/create', [KategoriDokController::class, 'create'])->name('create');
+            Route::post('/', [KategoriDokController::class, 'store'])->name('store');
+        });
+
+        Route::middleware(['access:kategori-dok,detail', 'throttle:read'])->group(function () {
+            Route::get('/', [KategoriDokController::class, 'index'])->name('index');
+            Route::get('/{kategoriDok}', [KategoriDokController::class, 'show'])->name('show')->where('kategoriDok', '[0-9]+');
+        });
+
+        Route::middleware(['access:kategori-dok,ubah', 'throttle:update'])->group(function () {
+            Route::get('/{kategoriDok}/edit', [KategoriDokController::class, 'edit'])->name('edit');
+            Route::put('/{kategoriDok}', [KategoriDokController::class, 'update'])->name('update');
+            Route::patch('/{kategoriDok}', [KategoriDokController::class, 'update']);
+        });
+
+        Route::middleware(['access:kategori-dok,hapus', 'throttle:delete'])->group(function () {
+            Route::delete('/{kategoriDok}', [KategoriDokController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // ===================================================
+    // Jenis Dokumen Routes dengan Rate Limiting
+    // ===================================================
+    Route::prefix('jenis-dok')->name('jenis-dok.')->group(function () {
+
+        Route::middleware(['access:jenis-dok,tambah', 'throttle:create'])->group(function () {
+            Route::get('/create', [JenisDokController::class, 'create'])->name('create');
+            Route::post('/', [JenisDokController::class, 'store'])->name('store');
+        });
+
+        Route::middleware(['access:jenis-dok,detail', 'throttle:read'])->group(function () {
+            Route::get('/', [JenisDokController::class, 'index'])->name('index');
+            Route::get('/{jenisDok}', [JenisDokController::class, 'show'])->name('show')->where('jenisDok', '[0-9]+');
+        });
+
+        Route::middleware(['access:jenis-dok,ubah', 'throttle:update'])->group(function () {
+            Route::get('/{jenisDok}/edit', [JenisDokController::class, 'edit'])->name('edit');
+            Route::put('/{jenisDok}', [JenisDokController::class, 'update'])->name('update');
+            Route::patch('/{jenisDok}', [JenisDokController::class, 'update']);
+        });
+
+        Route::middleware(['access:jenis-dok,hapus', 'throttle:delete'])->group(function () {
+            Route::delete('/{jenisDok}', [JenisDokController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // ===================================================
+    // API Routes dengan Rate Limiting Ketat
+    // ===================================================
+    Route::prefix('api')->middleware('throttle:api')->group(function () {
+        Route::get('/dokumen-by-status', [DokLegalController::class, 'getDokumenByStatus']);
+        Route::get('/dokumen-terbaru', [DokLegalController::class, 'getDokumenTerbaru']);
+        Route::get('/pengingat/{dokLegal}', [DokLegalController::class, 'getPengingat']);
+    });
+
+    // ===================================================
+    // Profile & Settings Routes dengan Rate Limiting
+    // ===================================================
+    Route::middleware('throttle:profile')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('/settings/update-password', [App\Http\Controllers\SettingsController::class, 'updatePassword'])->name('settings.update-password');
+    });
+
+    // ===================================================
+    // Cabang Rekap Routes dengan Rate Limiting
+    // ===================================================
+    Route::prefix('cabang-rekap')->name('cabang.')->middleware('throttle:read')->group(function () {
+        Route::get('/', [App\Http\Controllers\CabangRekapController::class, 'index'])->name('rekap');
+        Route::get('/detail/{perusahaanId}', [App\Http\Controllers\CabangRekapController::class, 'detail'])->name('detail');
+    });
+
+    // Debug route - hapus di production!
+    if (config('app.debug')) {
+        Route::get('/debug/users/create', [UserController::class, 'create'])->name('debug.users.create');
+    }
+});
 
 // Auth routes (login, logout, reset password)
 require __DIR__ . '/auth.php';
