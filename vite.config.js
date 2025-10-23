@@ -12,6 +12,7 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    
     server: {
         host: '0.0.0.0',
         hmr: {
@@ -25,4 +26,11 @@ export default defineConfig({
             credentials: true
         }
     },
+
+    // server: {
+    //     hmr: {
+    //         host: 'localhost'
+
+    //     },
+    // },
 });
