@@ -311,6 +311,14 @@
                         @enderror
                     </div>
                     <div class="form-group">
+                        {!! NoCaptcha::renderJs() !!}
+                        {!! NoCaptcha::display(['data-theme' => 'light']) !!}
+                        @error('g-recaptcha-response')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-sign-in-alt me-2"></i> Masuk
                         </button>
