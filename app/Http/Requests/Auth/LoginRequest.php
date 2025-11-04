@@ -29,7 +29,7 @@ class LoginRequest extends FormRequest
         return [
             'nik' => ['required', 'string'],
             'password' => ['required', 'string'],
-            'g-recaptcha-response' => ['required', 'captcha'],
+            'g-recaptcha-response' => ['required', new RecaptchaRule],
         ];
     }
 
