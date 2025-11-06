@@ -34,4 +34,9 @@ return [
         'reset_field' => 'NikKry',
     ],
 
+   'activity_hub' => [
+        'url' => env('ACTIVITY_HUB_URL', 'http://103.123.98.9:8084'),
+        'api_key' => env('ACTIVITY_HUB_API_KEY', 'sikap-8081'),
+    ],
+
 ];

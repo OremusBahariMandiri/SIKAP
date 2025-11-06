@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\ActivityHubClient;
 
 class IpWhitelist
 {
+    protected $activityHub;
+
+    public function __construct(ActivityHubClient $activityHub)
+    {
+        $this->activityHub = $activityHub;
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -36,6 +44,20 @@ class IpWhitelist
                     'url' => $request->fullUrl(),
                     'user_agent' => $request->userAgent()
                 ]);
+
+                // Kirim ke Activity Hub
+                try {
+                    $this->activityHub->logSecurityEvent('unauthorized_access', 'high', [
+                        'ip_address' => $clientIp,
+                        'url' => $request->fullUrl(),
+                        'user_agent' => $request->userAgent(),
+                        'reason' => 'IP not in whitelist',
+                        'user_id' => auth()->id(),
+                        'user_email' => auth()->user()->email ?? null,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send to Activity Hub: ' . $e->getMessage());
+                }
 
                 // Cek jika request adalah AJAX/API
                 if ($request->expectsJson() || $request->is('api/*')) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\TracksChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -9,7 +10,7 @@ use Illuminate\Support\Str;
 
 class DokLegal extends Model
 {
-    use HasFactory;
+    use HasFactory, TracksChanges;
 
     protected $table = 'B01DokLegal';
     protected $fillable = [
@@ -143,5 +144,5 @@ class DokLegal extends Model
             $this->attributes['MasaPengingat'] = '-';
         }
     }
-    
+
 }

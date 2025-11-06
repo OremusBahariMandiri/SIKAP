@@ -38,6 +38,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DDoSProtection::class,
+            \App\Http\Middleware\TrackUserActivity::class,
         ],
 
         'api' => [
@@ -72,5 +73,7 @@ class Kernel extends HttpKernel
         'ddos.protection' => \App\Http\Middleware\DDoSProtection::class,
         'ip.whitelist' => \App\Http\Middleware\IpWhitelist::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+        'ddos' => \App\Http\Middleware\DDoSProtection::class,
+        'throttle.log' => \App\Http\Middleware\ThrottleRequestsWithLogging::class,
     ];
 }

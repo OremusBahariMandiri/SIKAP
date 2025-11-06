@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\TracksChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserAccess extends Model
 {
-    use HasFactory;
+    use HasFactory, TracksChanges;
 
     protected $table = 'A02DmUserAccess';
 
