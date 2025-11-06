@@ -35,8 +35,8 @@ return [
     ],
 
    'activity_hub' => [
-        'url' => env('ACTIVITY_HUB_URL', 'http://103.123.98.9:8084'),
-        'api_key' => env('ACTIVITY_HUB_API_KEY', 'sikap-8081'),
+        'url' => env('ACTIVITY_HUB_URL'),
+        'api_key' => env('ACTIVITY_HUB_API_KEY'),
     ],
 
 ];
