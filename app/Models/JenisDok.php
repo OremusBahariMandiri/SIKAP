@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\TracksChanges;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
+
 class JenisDok extends Model
 {
-    use HasFactory;
+    use HasFactory, TracksChanges;
 
     /**
      * The table associated with the model.
