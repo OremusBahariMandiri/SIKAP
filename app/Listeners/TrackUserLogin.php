@@ -24,6 +24,16 @@ class TrackUserLogin
         // Simpan di session
         session(['activity_hub_session_id' => $sessionId]);
 
+        // Ambil IP pengguna
+        $ipAddress = request()->ip();
+
+        // Register IP ke sistem monitoring
+        $this->activityHub->registerIp(
+            $ipAddress,
+            'watch',
+            'Auto-registered during user login'
+        );
+
         // Track login di ActivityHub
         $this->activityHub->trackSession(
             $event->user->id,
