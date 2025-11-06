@@ -144,6 +144,29 @@ class ActivityHubClient
         }
     }
 
+    public function registerIp($ip = null, $type = 'watch', $reason = null)
+    {
+        $ipToRegister = $ip ?? request()->ip();
+
+        try {
+            $response = Http::withHeaders([
+                'X-API-Key' => $this->apiKey,
+            ])->post($this->baseUrl . '/api/ip/register', [
+                'ip_address' => $ipToRegister,
+                'type' => $type,
+                'reason' => $reason ?? 'Auto-registered from client',
+            ]);
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::error('Failed to register IP to Activity Hub', [
+                'error' => $e->getMessage(),
+                'ip' => $ipToRegister
+            ]);
+            return null;
+        }
+    }
+
 
 
     public function getDashboardStats($days = 30)
