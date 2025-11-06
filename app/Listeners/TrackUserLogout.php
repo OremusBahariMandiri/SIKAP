@@ -17,6 +17,16 @@ class TrackUserLogout
 
     public function handle(Logout $event)
     {
+        // Ambil IP pengguna
+        $ipAddress = request()->ip();
+
+        // Pastikan IP terdaftar di sistem monitoring
+        $this->activityHub->registerIp(
+            $ipAddress,
+            'watch',
+            'Auto-registered during user logout'
+        );
+
         // Log aktivitas logout
         $this->activityHub->logActivity([
             'user_id' => $event->user->id,
