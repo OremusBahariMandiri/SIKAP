@@ -124,22 +124,27 @@ class ActivityHubClient
         }
     }
 
-    public function checkIpStatus($ip)
+    public function checkIpStatus($ip = null)
     {
+        $ipToCheck = $ip ?? request()->ip();
+
         try {
             $response = Http::withHeaders([
                 'X-API-Key' => $this->apiKey,
-            ])->get($this->baseUrl . "/api/ip/check/{$ip}");
+            ])->get($this->baseUrl . "/api/ip/check/{$ipToCheck}");
 
             return $response->json();
         } catch (\Throwable $e) {
+            // Catat kesalahan jika ada
             Log::error('Failed to check IP status in Activity Hub', [
                 'error' => $e->getMessage(),
-                'ip' => $ip
+                'ip' => $ipToCheck
             ]);
             return null;
         }
     }
+
+
 
     public function getDashboardStats($days = 30)
     {

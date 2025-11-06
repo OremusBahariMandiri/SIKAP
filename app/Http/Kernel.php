@@ -39,6 +39,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DDoSProtection::class,
             \App\Http\Middleware\TrackUserActivity::class,
+            \App\Http\Middleware\CheckIpStatus::class,
         ],
 
         'api' => [
