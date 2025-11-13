@@ -538,11 +538,11 @@
                 language: indonesianLanguage,
                 columnDefs: [{
                         responsivePriority: 1,
-                        targets: [0, 1, 13] // No, Nama Perusahaan, Aksi
+                        targets: [0, 1, 5, 6, 7, 8, 13] // No, Nama Perusahaan, Aksi
                     },
                     {
                         responsivePriority: 2,
-                        targets: [2, 9, 10] // Bidang Usaha, Telepon, Email
+                        targets: [2, 5, 6, 7, 8, 9, 10] // Bidang Usaha, Telepon, Email
                     },
                     {
                         orderable: false,
